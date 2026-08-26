@@ -63,12 +63,14 @@ public sealed class GetTimeEntriesHandler
         var items = paged.Items.Select(entry =>
         {
             var employee = employees.GetValueOrDefault(entry.EmployeeId)
-                ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник записи не найден.", 404);
+                           ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник записи не найден.", 404);
             var project = projects.GetValueOrDefault(entry.ProjectId)
-                ?? throw new BusinessException(ErrorCodes.NotFound, "Проект записи не найден.", 404);
+                          ?? throw new BusinessException(ErrorCodes.NotFound, "Проект записи не найден.", 404);
             hoursByDay.TryGetValue((entry.EmployeeId, entry.Date), out var hoursForDay);
+
             return TimeEntryMapper.Map(entry, employee, project, hoursForDay);
-        }).ToList();
+        })
+            .ToList();
 
         return new PagedTimeEntriesResponse
         {
