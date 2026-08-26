@@ -24,6 +24,16 @@ public sealed class GlobalExceptionMiddleware
         {
             await _next(context);
         }
+        catch (BusinessException ex)
+        {
+            _logger.LogInformation(ex, "Business rule: {Code}", ex.Code);
+            await HandleExceptionAsync(context, ex);
+        }
+        catch (ValidationException ex)
+        {
+            _logger.LogInformation(ex, "Validation failed");
+            await HandleExceptionAsync(context, ex);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "An unhandled exception occurred while processing the request");
