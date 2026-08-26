@@ -13,4 +13,5 @@ RUN dotnet publish "./Seeder.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:
 FROM mcr.microsoft.com/dotnet/runtime:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+COPY Seeder/Data ./Data
 ENTRYPOINT ["dotnet", "Seeder.dll"]

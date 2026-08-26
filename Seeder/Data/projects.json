@@ -1,0 +1,50 @@
+[
+  {
+    "id": "33333333-3333-3333-3333-333333333333",
+    "code": "П-001",
+    "name": "Реконструкция цеха",
+    "budget": 20000,
+    "startDate": "2026-01-01",
+    "endDate": "2026-03-31"
+  },
+  {
+    "id": "44444444-4444-4444-4444-444444444444",
+    "code": "П-002",
+    "name": "Инженерные сети",
+    "budget": 5000,
+    "startDate": "2026-02-01",
+    "endDate": "2026-04-30"
+  },
+  {
+    "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    "code": "П-003",
+    "name": "Модернизация оборудования",
+    "budget": 35000,
+    "startDate": "2026-01-15",
+    "endDate": "2026-06-30"
+  },
+  {
+    "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+    "code": "П-004",
+    "name": "Строительство склада",
+    "budget": 15000,
+    "startDate": "2026-03-01",
+    "endDate": "2026-07-31"
+  },
+  {
+    "id": "cccccccc-cccc-cccc-cccc-cccccccccccc",
+    "code": "П-005",
+    "name": "Автоматизация процессов",
+    "budget": 25000,
+    "startDate": "2026-02-15",
+    "endDate": "2026-08-31"
+  },
+  {
+    "id": "dddddddd-dddd-dddd-dddd-dddddddddddd",
+    "code": "П-006",
+    "name": "Ремонт кровли",
+    "budget": 8000,
+    "startDate": "2026-04-01",
+    "endDate": "2026-05-31"
+  }
+]
