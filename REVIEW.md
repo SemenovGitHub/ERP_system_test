@@ -61,3 +61,5 @@ var amount = Math.Round(entry.Hours * rate.Value, 2);
 ---
 
 Исправление: `TimesheetReportHandler.fixed.cs`.
+
+Косметику трогать не стал
