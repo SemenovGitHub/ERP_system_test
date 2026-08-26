@@ -3,8 +3,6 @@
     image: mongo:7.0
     ports:
       - "27017:27017"
-    volumes:
-      - mongo_data:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
       interval: 5s
@@ -25,7 +23,6 @@
     restart: "no"
 
   erp:
-    image: erp
     build:
       context: .
       dockerfile: ERP/Dockerfile
@@ -42,5 +39,11 @@
       seeder:
         condition: service_completed_successfully
 
-volumes:
-  mongo_data:
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - erp

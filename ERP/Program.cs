@@ -1,5 +1,6 @@
 using Application;
 using ERP.Middleware;
+using Microsoft.AspNetCore.Mvc;
 using Repository;
 using Repository.Mongo;
 
@@ -14,16 +15,51 @@ public class Program
         builder.Services.AddApplication();
         builder.Services.AddMongoRepositories(builder.Configuration);
         builder.Services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
-        builder.Services.AddControllers();
+        builder.Services.AddControllers()
+            .ConfigureApiBehaviorOptions(options =>
+            {
+                options.InvalidModelStateResponseFactory = context =>
+                {
+                    var errors = context.ModelState
+                        .Where(entry => entry.Value is { Errors.Count: > 0 })
+                        .ToDictionary(
+                            entry => entry.Key,
+                            entry => entry.Value!.Errors
+                                .Select(error => HumanizeModelError(error.ErrorMessage))
+                                .Distinct()
+                                .ToArray());
+
+                    var message = errors.SelectMany(pair => pair.Value).FirstOrDefault()
+                        ?? "Ошибка валидации запроса.";
+
+                    return new BadRequestObjectResult(
+                        new ErrorResponse("VALIDATION_ERROR", message, errors));
+                };
+            });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        
+        // Настройка CORS для фронтенда
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        });
 
         var app = builder.Build();
 
         var indexes = app.Services.GetRequiredService<MongoIndexInitializer>();
         await indexes.EnsureIndexesAsync(CancellationToken.None);
 
-        app.UseMiddleware<BusinessExceptionMiddleware>();
+        app.UseMiddleware<GlobalExceptionMiddleware>();
+        
+        // Включаем CORS
+        app.UseCors("AllowFrontend");
 
         if (app.Environment.IsDevelopment())
         {
@@ -42,5 +78,26 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
         await app.RunAsync();
+    }
+
+    private static string HumanizeModelError(string? errorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(errorMessage))
+        {
+            return "Некорректное значение.";
+        }
+
+        if (errorMessage.Contains("DateOnly", StringComparison.OrdinalIgnoreCase)
+            || errorMessage.Contains("date", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Некорректная дата.";
+        }
+
+        if (errorMessage.Contains("Guid", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Не выбран сотрудник или проект.";
+        }
+
+        return errorMessage;
     }
 }

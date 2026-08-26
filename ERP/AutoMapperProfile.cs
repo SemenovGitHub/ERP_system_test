@@ -4,6 +4,7 @@ using ERP.Abstractions.Models.Periods;
 using ERP.Abstractions.Models.Projects;
 using ERP.Abstractions.Models.Reports;
 using ERP.Abstractions.Models.TimeEntries;
+using Application.Models.Employees.Commands;
 using Application.Models.Employees.Queries;
 using Application.Models.Employees.Responses;
 using Application.Models.Periods.Commands;
@@ -40,7 +41,8 @@ public class AutoMapperProfile : Profile
 
         // Application -> API DTO
 
-        CreateMap<TimeEntryResponse, TimeEntryDto>();
+        CreateMap<TimeEntryResponse, TimeEntryDto>()
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime(TimeOnly.MinValue)));
 
         CreateMap<PagedTimeEntriesResponse, PagedTimeEntriesDto>();
     }
@@ -64,16 +66,26 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<GetEmployeesDto, GetEmployeesQuery>();
 
-        CreateMap<EmployeeResponse, EmployeeDto>();
+        CreateMap<RateResponse, RateDto>();
+
+        CreateMap<EmployeeResponse, EmployeeDto>()
+            .ForMember(dest => dest.Rates, opt => opt.MapFrom(src => src.Rates));
 
         CreateMap<PagedEmployeesResponse, PagedEmployeesDto>();
+
+        CreateMap<RateDto, RateItem>();
+
+        CreateMap<UpdateEmployeeRatesDto, UpdateEmployeeRatesCommand>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     private void MapProjectProfile()
     {
         CreateMap<GetProjectsDto, GetProjectsQuery>();
 
-        CreateMap<ProjectResponse, ProjectDto>();
+        CreateMap<ProjectResponse, ProjectDto>()
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.HasValue ? src.EndDate.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null));
 
         CreateMap<PagedProjectsResponse, PagedProjectsDto>();
     }
