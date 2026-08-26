@@ -20,10 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Abstractions\Contracts\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <ProjectReference Include="..\Aplication\Aplication.csproj" />
       <ProjectReference Include="..\Repository\Repository.csproj" />
     </ItemGroup>
