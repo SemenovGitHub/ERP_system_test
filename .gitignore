@@ -465,3 +465,7 @@ tmp/
 appsettings.Development.local.json
 appsettings.Production.local.json
 appsettings.Staging.local.json
+# Additional macOS files (ensure complete ignore)
+**/.DS_Store
+.DS_Store
+**/._*
