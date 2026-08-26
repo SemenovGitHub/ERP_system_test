@@ -9,5 +9,4 @@ public static class ErrorCodes
     public const string InvalidHours = "INVALID_HOURS";
     public const string ConcurrencyConflict = "CONCURRENCY_CONFLICT";
     public const string NotFound = "NOT_FOUND";
-    public const string Validation = "VALIDATION_ERROR";
 }

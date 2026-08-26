@@ -4,6 +4,10 @@ using MediatR;
 
 namespace Application.Behaviors;
 
+/// <summary>
+/// MediatR pipeline: runs FluentValidation validators before the handler.
+/// Handlers do not call validators themselves.
+/// </summary>
 public sealed class ValidationBehavior<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
@@ -32,12 +36,17 @@ public sealed class ValidationBehavior<TRequest, TResponse>
             .Where(error => error is not null)
             .ToList();
 
-        if (failures.Count > 0)
+        if (failures.Count == 0)
         {
-            var message = string.Join(" ", failures.Select(error => error.ErrorMessage).Distinct());
-            throw new BusinessException(ErrorCodes.Validation, message);
+            return await next();
         }
 
-        return await next();
+        var errors = failures
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(error => error.ErrorMessage).Distinct().ToArray());
+
+        throw new Domain.Exceptions.ValidationException("Ошибка валидации запроса.", errors);
     }
 }

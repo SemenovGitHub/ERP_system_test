@@ -16,7 +16,13 @@ public static class DependencyInjection
     {
         MongoSerializers.Register();
 
-        services.Configure<MongoSettings>(configuration.GetSection(MongoSettings.SectionName));
+        services.AddOptions<MongoSettings>()
+            .Bind(configuration.GetSection(MongoSettings.SectionName))
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ConnectionString),
+                "Секция Mongo:ConnectionString обязательна и задаётся в appsettings или переменных окружения.")
+            .Validate(settings => !string.IsNullOrWhiteSpace(settings.DatabaseName),
+                "Секция Mongo:DatabaseName обязательна и задаётся в appsettings или переменных окружения.")
+            .ValidateOnStart();
 
         services.AddSingleton<IMongoClient>(provider =>
         {

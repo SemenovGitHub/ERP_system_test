@@ -13,6 +13,7 @@ public static class DependencyInjection
         services.AddMediatR(configuration =>
         {
             configuration.RegisterServicesFromAssembly(typeof(CreateTimeEntryHandler).Assembly);
+            // FluentValidation runs here, before any handler. See Application.Behaviors.ValidationBehavior.
             configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 

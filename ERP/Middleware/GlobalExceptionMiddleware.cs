@@ -39,12 +39,12 @@ public sealed class GlobalExceptionMiddleware
                 HttpStatusCode.BadRequest,
                 new ErrorResponse(
                     "VALIDATION_ERROR",
-                    "One or more validation errors occurred",
+                    validationEx.Message,
                     validationEx.ValidationErrors
                 )),
             
             BusinessException businessEx => (
-                HttpStatusCode.BadRequest,
+                (HttpStatusCode)businessEx.StatusCode,
                 new ErrorResponse(
                     businessEx.Code,
                     businessEx.Message,
