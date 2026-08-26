@@ -469,3 +469,12 @@ appsettings.Staging.local.json
 **/.DS_Store
 .DS_Store
 **/._*
+
+# macOS
+.DS_Store
+**/.DS_Store
+**/._*
+
+# JetBrains Rider
+.idea/
+*.sln.iml
