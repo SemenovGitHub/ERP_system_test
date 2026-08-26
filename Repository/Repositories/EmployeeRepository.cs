@@ -69,12 +69,6 @@ public sealed class EmployeeRepository : IEmployeeRepository
             .SortBy(employee => employee.FullName)
             .Skip(skip)
             .Limit(pageSize)
-            .Project(employee => new Documents.EmployeeDocument
-            {
-                Id = employee.Id,
-                FullName = employee.FullName,
-                Department = employee.Department
-            })
             .ToListAsync(cancellationToken);
 
         await Task.WhenAll(totalTask, itemsTask);

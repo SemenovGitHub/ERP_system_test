@@ -1,7 +1,8 @@
 import { create } from 'zustand';
-import { apiRequest, monthToParts } from './api';
+import { apiRequest, hoursValidationMessage, isValidEntryHours, monthToParts } from './api';
 
 const DEFAULT_MONTH = '2026-03';
+const IVANOV_ID = '11111111-1111-1111-1111-111111111111';
 
 function emptyForm() {
   return {
@@ -10,6 +11,17 @@ function emptyForm() {
     date: `${DEFAULT_MONTH}-01`,
     hours: '8',
     comment: ''
+  };
+}
+
+function ratesFormFromEmployee(employee) {
+  const rates = (employee?.rates || []).map((rate) => ({
+    from: String(rate.from).slice(0, 10),
+    value: String(rate.value)
+  }));
+  return {
+    employeeId: employee?.id || '',
+    rates: rates.length > 0 ? rates : [{ from: `${DEFAULT_MONTH}-01`, value: '' }]
   };
 }
 
@@ -28,6 +40,7 @@ export const useStore = create((set, get) => ({
   pageError: '',
   modal: null,
   form: emptyForm(),
+  ratesForm: ratesFormFromEmployee(null),
   formError: '',
   fieldErrors: {},
   saving: false,
@@ -64,7 +77,40 @@ export const useStore = create((set, get) => ({
   setFormField: (name, value) => {
     set((state) => ({
       form: { ...state.form, [name]: value },
-      fieldErrors: { ...state.fieldErrors, [name]: undefined }
+      fieldErrors: { ...state.fieldErrors, [name]: undefined, [name.charAt(0).toUpperCase() + name.slice(1)]: undefined }
+    }));
+  },
+
+  setRatesEmployee: (employeeId) => {
+    const employee = get().employees.find((item) => item.id === employeeId);
+    set({ ratesForm: ratesFormFromEmployee(employee), formError: '' });
+  },
+
+  setRateRow: (index, name, value) => {
+    set((state) => ({
+      ratesForm: {
+        ...state.ratesForm,
+        rates: state.ratesForm.rates.map((rate, rowIndex) =>
+          rowIndex === index ? { ...rate, [name]: value } : rate)
+      }
+    }));
+  },
+
+  addRateRow: () => {
+    set((state) => ({
+      ratesForm: {
+        ...state.ratesForm,
+        rates: [...state.ratesForm.rates, { from: `${get().month}-01`, value: '' }]
+      }
+    }));
+  },
+
+  removeRateRow: (index) => {
+    set((state) => ({
+      ratesForm: {
+        ...state.ratesForm,
+        rates: state.ratesForm.rates.filter((_, rowIndex) => rowIndex !== index)
+      }
     }));
   },
 
@@ -165,15 +211,37 @@ export const useStore = create((set, get) => ({
     });
   },
 
+  openRates: () => {
+    const employees = get().employees;
+    const employee = employees.find((item) => item.id === IVANOV_ID) || employees[0];
+    set({
+      modal: { type: 'rates' },
+      ratesForm: ratesFormFromEmployee(employee),
+      formError: '',
+      fieldErrors: {}
+    });
+  },
+
   closeModal: () => set({ modal: null, formError: '', fieldErrors: {}, saving: false }),
 
   saveEntry: async () => {
     const { form, modal } = get();
+    const hours = Number(form.hours);
+
+    if (!isValidEntryHours(hours)) {
+      set({
+        saving: false,
+        formError: hoursValidationMessage(),
+        fieldErrors: { Hours: [hoursValidationMessage()] }
+      });
+      return;
+    }
+
     const payload = {
       employeeId: form.employeeId,
       projectId: form.projectId,
       date: form.date,
-      hours: Number(form.hours),
+      hours,
       comment: form.comment || null
     };
 
@@ -210,6 +278,63 @@ export const useStore = create((set, get) => ({
       await get().loadTimesheet();
     } catch (error) {
       set({ saving: false, formError: error.message });
+    }
+  },
+
+  closePeriod: async () => {
+    const { year, month } = monthToParts(get().month);
+    set({ saving: true, pageError: '' });
+    try {
+      await apiRequest('/api/periods/close', {
+        method: 'POST',
+        body: JSON.stringify({ year, month })
+      });
+      set({ saving: false, pageError: `Период ${String(month).padStart(2, '0')}.${year} закрыт.` });
+    } catch (error) {
+      set({ saving: false, pageError: error.message });
+    }
+  },
+
+  openPeriod: async () => {
+    const { year, month } = monthToParts(get().month);
+    set({ saving: true, pageError: '' });
+    try {
+      await apiRequest('/api/periods/open', {
+        method: 'POST',
+        body: JSON.stringify({ year, month })
+      });
+      set({ saving: false, pageError: `Период ${String(month).padStart(2, '0')}.${year} открыт.` });
+    } catch (error) {
+      set({ saving: false, pageError: error.message });
+    }
+  },
+
+  saveRates: async () => {
+    const { ratesForm } = get();
+    const payload = {
+      rates: ratesForm.rates.map((rate) => ({
+        from: rate.from,
+        value: Number(rate.value)
+      }))
+    };
+
+    set({ saving: true, formError: '', fieldErrors: {} });
+    try {
+      await apiRequest(`/api/employees/${ratesForm.employeeId}/rates`, {
+        method: 'PUT',
+        body: JSON.stringify(payload)
+      });
+      set({ saving: false, modal: null });
+      await get().bootstrap();
+      if (get().screen === 'report') {
+        await get().loadReport();
+      }
+    } catch (error) {
+      set({
+        saving: false,
+        formError: error.message,
+        fieldErrors: error.fields || {}
+      });
     }
   }
 }));

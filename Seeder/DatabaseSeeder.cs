@@ -58,7 +58,7 @@ public sealed class DatabaseSeeder
             Name = p.Name,
             Budget = p.Budget,
             StartDate = DateTime.SpecifyKind(p.StartDate, DateTimeKind.Utc),
-            EndDate = DateTime.SpecifyKind(p.EndDate, DateTimeKind.Utc)
+            EndDate = p.EndDate is { } end ? DateTime.SpecifyKind(end, DateTimeKind.Utc) : null
         }).ToList();
 
         await _collections.ProjectsCollection.InsertManyAsync(

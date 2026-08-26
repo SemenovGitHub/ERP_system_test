@@ -22,3 +22,4 @@ tfoot th, tfoot td { font-weight: bold; }
 form { display: flex; flex-direction: column; gap: 10px; }
 .actions { display: flex; gap: 8px; margin-top: 8px; }
 .field-error { color: #a00; font-size: 12px; }
+.rate-row { display: flex; gap: 8px; align-items: end; }

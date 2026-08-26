@@ -4,6 +4,7 @@ using ERP.Abstractions.Models.Periods;
 using ERP.Abstractions.Models.Projects;
 using ERP.Abstractions.Models.Reports;
 using ERP.Abstractions.Models.TimeEntries;
+using Application.Models.Employees.Commands;
 using Application.Models.Employees.Queries;
 using Application.Models.Employees.Responses;
 using Application.Models.Periods.Commands;
@@ -65,9 +66,17 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<GetEmployeesDto, GetEmployeesQuery>();
 
-        CreateMap<EmployeeResponse, EmployeeDto>();
+        CreateMap<RateResponse, RateDto>();
+
+        CreateMap<EmployeeResponse, EmployeeDto>()
+            .ForMember(dest => dest.Rates, opt => opt.MapFrom(src => src.Rates));
 
         CreateMap<PagedEmployeesResponse, PagedEmployeesDto>();
+
+        CreateMap<RateDto, RateItem>();
+
+        CreateMap<UpdateEmployeeRatesDto, UpdateEmployeeRatesCommand>()
+            .ForMember(dest => dest.Id, opt => opt.Ignore());
     }
 
     private void MapProjectProfile()

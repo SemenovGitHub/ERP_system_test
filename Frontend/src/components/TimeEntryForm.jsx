@@ -1,3 +1,4 @@
+import { fieldMessages } from '../api';
 import { useStore } from '../store';
 
 export function TimeEntryForm() {
@@ -10,6 +11,7 @@ export function TimeEntryForm() {
   const setFormField = useStore((state) => state.setFormField);
   const saveEntry = useStore((state) => state.saveEntry);
   const closeModal = useStore((state) => state.closeModal);
+  const hoursError = fieldMessages(fieldErrors, 'Hours').join(' ');
 
   return (
     <form
@@ -17,6 +19,7 @@ export function TimeEntryForm() {
         event.preventDefault();
         saveEntry();
       }}
+      noValidate
     >
       {formError ? <div className="banner error">{formError}</div> : null}
 
@@ -34,7 +37,9 @@ export function TimeEntryForm() {
             </option>
           ))}
         </select>
-        {fieldErrors.EmployeeId ? <span className="field-error">{fieldErrors.EmployeeId.join(' ')}</span> : null}
+        {fieldMessages(fieldErrors, 'EmployeeId').length ? (
+          <span className="field-error">{fieldMessages(fieldErrors, 'EmployeeId').join(' ')}</span>
+        ) : null}
       </label>
 
       <label>
@@ -51,7 +56,9 @@ export function TimeEntryForm() {
             </option>
           ))}
         </select>
-        {fieldErrors.ProjectId ? <span className="field-error">{fieldErrors.ProjectId.join(' ')}</span> : null}
+        {fieldMessages(fieldErrors, 'ProjectId').length ? (
+          <span className="field-error">{fieldMessages(fieldErrors, 'ProjectId').join(' ')}</span>
+        ) : null}
       </label>
 
       <label>
@@ -62,21 +69,21 @@ export function TimeEntryForm() {
           onChange={(event) => setFormField('date', event.target.value)}
           required
         />
-        {fieldErrors.Date ? <span className="field-error">{fieldErrors.Date.join(' ')}</span> : null}
+        {fieldMessages(fieldErrors, 'Date').length ? (
+          <span className="field-error">{fieldMessages(fieldErrors, 'Date').join(' ')}</span>
+        ) : null}
       </label>
 
       <label>
         Часы
         <input
           type="number"
-          min="0.5"
-          max="24"
-          step="0.5"
+          step="any"
           value={form.hours}
           onChange={(event) => setFormField('hours', event.target.value)}
           required
         />
-        {fieldErrors.Hours ? <span className="field-error">{fieldErrors.Hours.join(' ')}</span> : null}
+        {hoursError ? <span className="field-error">{hoursError}</span> : null}
       </label>
 
       <label>
@@ -87,7 +94,9 @@ export function TimeEntryForm() {
           value={form.comment}
           onChange={(event) => setFormField('comment', event.target.value)}
         />
-        {fieldErrors.Comment ? <span className="field-error">{fieldErrors.Comment.join(' ')}</span> : null}
+        {fieldMessages(fieldErrors, 'Comment').length ? (
+          <span className="field-error">{fieldMessages(fieldErrors, 'Comment').join(' ')}</span>
+        ) : null}
       </label>
 
       <div className="actions">

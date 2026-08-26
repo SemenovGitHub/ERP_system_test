@@ -2,6 +2,7 @@ import { formatDate, formatHours, formatMoney } from '../api';
 import { useStore } from '../store';
 import { Modal } from '../components/Modal';
 import { TimeEntryForm } from '../components/TimeEntryForm';
+import { RatesForm } from '../components/RatesForm';
 
 export function TimesheetScreen() {
   const month = useStore((state) => state.month);
@@ -20,6 +21,9 @@ export function TimesheetScreen() {
   const openCreate = useStore((state) => state.openCreate);
   const openEdit = useStore((state) => state.openEdit);
   const openDelete = useStore((state) => state.openDelete);
+  const openRates = useStore((state) => state.openRates);
+  const closePeriod = useStore((state) => state.closePeriod);
+  const openPeriod = useStore((state) => state.openPeriod);
   const closeModal = useStore((state) => state.closeModal);
   const deleteEntry = useStore((state) => state.deleteEntry);
 
@@ -50,6 +54,9 @@ export function TimesheetScreen() {
           </select>
         </label>
         <button type="button" onClick={openCreate}>Добавить запись</button>
+        <button type="button" onClick={openRates}>Ставки</button>
+        <button type="button" onClick={closePeriod}>Закрыть месяц</button>
+        <button type="button" onClick={openPeriod}>Открыть месяц</button>
       </div>
 
       <table>
@@ -116,6 +123,12 @@ export function TimesheetScreen() {
             </button>
             <button type="button" onClick={closeModal}>Отмена</button>
           </div>
+        </Modal>
+      ) : null}
+
+      {modal?.type === 'rates' ? (
+        <Modal title="Ставки сотрудника" onClose={closeModal}>
+          <RatesForm />
         </Modal>
       ) : null}
     </section>

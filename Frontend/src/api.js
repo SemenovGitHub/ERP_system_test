@@ -72,3 +72,15 @@ export function monthToParts(monthValue) {
 export function partsToMonth(year, month) {
   return `${year}-${String(month).padStart(2, '0')}`;
 }
+
+export function isValidEntryHours(hours) {
+  return hours > 0 && hours <= 24 && Number.isInteger(hours * 2);
+}
+
+export function hoursValidationMessage() {
+  return 'Часы должны быть положительными, кратными 0,5 и не больше 24.';
+}
+
+export function fieldMessages(fieldErrors, name) {
+  return fieldErrors?.[name] || fieldErrors?.[name.charAt(0).toLowerCase() + name.slice(1)] || [];
+}
