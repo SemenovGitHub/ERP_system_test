@@ -15,9 +15,10 @@
    docker compose up --build --force-recreate --remove-orphans
    ```
 
-2. **Работаем с API** на http://localhost:8080
-   - Swagger UI: http://localhost:8080/swagger
-   - API endpoints: http://localhost:8080/api/
+2. **Доступные сервисы:**
+   - **Фронтенд**: http://localhost:3000
+   - **API**: http://localhost:8080
+   - **Swagger UI**: http://localhost:8080/swagger
 
 3. **Останавливаем:** 
    ```bash
@@ -37,6 +38,7 @@
 1. 🐳 Запускается MongoDB контейнер
 2. 🌱 Сидер заполняет базу тестовыми данными
 3. 🚀 API поднимается и готов к работе
+4. 🌐 Фронтенд запускается и подключается к API
 
 ### Тестовые данные
 После запуска в базе будут:
@@ -44,10 +46,19 @@
 - 6 проектов
 - 30 записей времени за 2026 год
 
-### API Endpoints
+### Основные функции
+#### Через веб-интерфейс (http://localhost:3000):
+- 👥 Просмотр сотрудников с пагинацией
+- 📁 Просмотр проектов с пагинацией  
+- ⏱️ Просмотр записей времени по периодам
+- 📊 Отчеты по проектам за месяц/год
+- ➕ Создание новых записей времени
+
+#### API Endpoints (http://localhost:8080/api):
 - `GET /api/employees` - список сотрудников (с пагинацией)
 - `GET /api/projects` - список проектов (с пагинацией)
 - `GET /api/time-entries?year=2026&month=3` - записи времени за март 2026
+- `POST /api/time-entries` - создание записи времени
 - `GET /api/reports/projects?year=2026&month=3` - отчет по проектам за март 2026
 
 ## 🛠 Разработка
@@ -60,6 +71,7 @@ ERP_system_test/
 ├── Aplication/          # Обработчики команд и запросов
 ├── Repository/          # Доступ к данным MongoDB
 ├── Seeder/              # Заполнение тестовыми данными
+├── Frontend/            # Веб-интерфейс (HTML/CSS/JS)
 └── compose.yaml         # Docker Compose конфигурация
 ```
 

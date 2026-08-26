@@ -38,3 +38,12 @@
         condition: service_healthy
       seeder:
         condition: service_completed_successfully
+
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - erp

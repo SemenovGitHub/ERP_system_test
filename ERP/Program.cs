@@ -17,6 +17,18 @@ public class Program
         builder.Services.AddControllers();
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        
+        // Настройка CORS для фронтенда
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:3000")
+                      .AllowAnyMethod()
+                      .AllowAnyHeader()
+                      .AllowCredentials();
+            });
+        });
 
         var app = builder.Build();
 
@@ -24,6 +36,9 @@ public class Program
         await indexes.EnsureIndexesAsync(CancellationToken.None);
 
         app.UseMiddleware<GlobalExceptionMiddleware>();
+        
+        // Включаем CORS
+        app.UseCors("AllowFrontend");
 
         if (app.Environment.IsDevelopment())
         {

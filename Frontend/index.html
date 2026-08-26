@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ERP System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>ERP System</h1>
+        
+        <!-- Сотрудники -->
+        <section>
+            <h2>Сотрудники</h2>
+            <div class="form-section">
+                <button onclick="loadEmployees()">Загрузить сотрудников</button>
+                <div class="pagination-controls">
+                    <label>Страница: <input type="number" id="employeePage" value="1" min="1" onchange="loadEmployees()"></label>
+                    <label>Размер: <input type="number" id="employeePageSize" value="10" min="1" max="100" onchange="loadEmployees()"></label>
+                </div>
+            </div>
+            <div id="employeesResult" class="result-section"></div>
+        </section>
+
+        <!-- Проекты -->
+        <section>
+            <h2>Проекты</h2>
+            <div class="form-section">
+                <button onclick="loadProjects()">Загрузить проекты</button>
+                <div class="pagination-controls">
+                    <label>Страница: <input type="number" id="projectPage" value="1" min="1" onchange="loadProjects()"></label>
+                    <label>Размер: <input type="number" id="projectPageSize" value="10" min="1" max="100" onchange="loadProjects()"></label>
+                </div>
+            </div>
+            <div id="projectsResult" class="result-section"></div>
+        </section>
+
+        <!-- Записи времени -->
+        <section>
+            <h2>Записи времени</h2>
+            <div class="form-section">
+                <label>Год: <input type="number" id="timeEntryYear" value="2026" min="2020" max="2030"></label>
+                <label>Месяц: <input type="number" id="timeEntryMonth" value="3" min="1" max="12"></label>
+                <div class="pagination-controls">
+                    <label>Страница: <input type="number" id="timeEntryPage" value="1" min="1"></label>
+                    <label>Размер: <input type="number" id="timeEntryPageSize" value="10" min="1" max="100"></label>
+                </div>
+                <button onclick="loadTimeEntries()">Загрузить записи</button>
+            </div>
+            <div id="timeEntriesResult" class="result-section"></div>
+        </section>
+
+        <!-- Отчеты по проектам -->
+        <section>
+            <h2>Отчеты по проектам</h2>
+            <div class="form-section">
+                <label>Год: <input type="number" id="reportYear" value="2026" min="2020" max="2030"></label>
+                <label>Месяц: <input type="number" id="reportMonth" value="3" min="1" max="12"></label>
+                <button onclick="loadProjectReport()">Загрузить отчет</button>
+            </div>
+            <div id="reportResult" class="result-section"></div>
+        </section>
+
+        <!-- Создание записи времени -->
+        <section>
+            <h2>Создать запись времени</h2>
+            <div class="form-section">
+                <label>ID Сотрудника: <input type="text" id="createEmployeeId" placeholder="GUID сотрудника"></label>
+                <label>ID Проекта: <input type="text" id="createProjectId" placeholder="GUID проекта"></label>
+                <label>Дата: <input type="date" id="createDate"></label>
+                <label>Часы: <input type="number" id="createHours" min="0.1" max="24" step="0.1"></label>
+                <label>Комментарий: <input type="text" id="createComment" placeholder="Описание работы"></label>
+                <button onclick="createTimeEntry()">Создать</button>
+            </div>
+            <div id="createResult" class="result-section"></div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

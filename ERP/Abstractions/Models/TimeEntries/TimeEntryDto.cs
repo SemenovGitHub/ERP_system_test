@@ -6,11 +6,11 @@ public sealed class TimeEntryDto
 
     public string EmployeeFullName { get; set; } = null!;
 
-    public string ProjectCode { get; set; } = null!;
+    public string ProjectName { get; set; } = null!;
+    
+    public DateTime Date { get; set; }
 
     public decimal Hours { get; set; }
 
-    public decimal Rate { get; set; }
-
-    public decimal Cost { get; set; }
+    public string? Comment { get; set; }
 }

@@ -7,9 +7,10 @@
 docker compose up --build --force-recreate --remove-orphans
 ```
 
-### API доступен на:
-- http://localhost:8080
-- Swagger: http://localhost:8080/swagger
+### Доступные сервисы:
+- **Фронтенд**: http://localhost:3000
+- **API**: http://localhost:8080  
+- **Swagger**: http://localhost:8080/swagger
 
 ### Остановка:
 ```bash
