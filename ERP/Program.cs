@@ -23,7 +23,7 @@ public class Program
         var indexes = app.Services.GetRequiredService<MongoIndexInitializer>();
         await indexes.EnsureIndexesAsync(CancellationToken.None);
 
-        app.UseMiddleware<BusinessExceptionMiddleware>();
+        app.UseMiddleware<GlobalExceptionMiddleware>();
 
         if (app.Environment.IsDevelopment())
         {

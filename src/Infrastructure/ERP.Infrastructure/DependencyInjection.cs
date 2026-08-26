@@ -1,4 +1,7 @@
+using ERP.Application.Abstractions.Behaviors;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
 
 namespace ERP.Infrastructure;
 
@@ -12,9 +15,21 @@ public static class DependencyInjection
     /// </summary>
     public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
-        // Add any cross-cutting infrastructure services here
-        // (logging, caching, external API clients, etc.)
-        
+        var assembly = Assembly.GetExecutingAssembly();
+
+        // Register MediatR handlers from this assembly
+        services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(assembly);
+            
+            // Pipeline behaviors are registered in Application.Abstractions
+            cfg.AddOpenBehavior(typeof(LoggingBehavior<,>));
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
+
+        // Register FluentValidation validators from this assembly
+        services.AddValidatorsFromAssembly(assembly, includeInternalTypes: true);
+
         return services;
     }
 }

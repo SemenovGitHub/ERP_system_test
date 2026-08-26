@@ -1,10 +1,8 @@
-using ERP.Domain.Exceptions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
+using Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
 
-namespace ERP.Infrastructure.Middleware;
+namespace ERP.Middleware;
 
 /// <summary>
 /// Global exception handling middleware that converts exceptions to appropriate HTTP responses
