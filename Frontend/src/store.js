@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { apiRequest, hoursValidationMessage, isValidEntryHours, monthToParts } from './api';
+import { apiRequest, hasRateOnDate, hoursValidationMessage, isValidEntryHours, monthToParts, NO_RATE_MESSAGE } from './api';
 
 const DEFAULT_MONTH = '2026-03';
 const IVANOV_ID = '11111111-1111-1111-1111-111111111111';
@@ -15,10 +15,12 @@ function emptyForm() {
 }
 
 function ratesFormFromEmployee(employee) {
-  const rates = (employee?.rates || []).map((rate) => ({
-    from: String(rate.from).slice(0, 10),
-    value: String(rate.value)
-  }));
+  const rates = (employee?.rates || [])
+    .map((rate) => ({
+      from: String(rate.from).slice(0, 10),
+      value: String(rate.value)
+    }))
+    .sort((a, b) => b.from.localeCompare(a.from));
   return {
     employeeId: employee?.id || '',
     rates: rates.length > 0 ? rates : [{ from: `${DEFAULT_MONTH}-01`, value: '' }]
@@ -233,6 +235,16 @@ export const useStore = create((set, get) => ({
         saving: false,
         formError: hoursValidationMessage(),
         fieldErrors: { Hours: [hoursValidationMessage()] }
+      });
+      return;
+    }
+
+    const employee = get().employees.find((item) => item.id === form.employeeId);
+    if (form.employeeId && form.date && !hasRateOnDate(employee, form.date)) {
+      set({
+        saving: false,
+        formError: NO_RATE_MESSAGE,
+        fieldErrors: { Date: [NO_RATE_MESSAGE] }
       });
       return;
     }

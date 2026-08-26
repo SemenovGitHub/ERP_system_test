@@ -34,10 +34,14 @@ export function RatesForm() {
         </select>
       </label>
 
+      <p className="hint">
+        На дату записи действует последняя ставка, у которой «действует с» не позже этой даты.
+      </p>
+
       {ratesForm.rates.map((rate, index) => (
         <div className="rate-row" key={`${rate.from}-${index}`}>
           <label>
-            С
+            Действует с
             <input
               type="date"
               value={rate.from}

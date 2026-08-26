@@ -12,7 +12,14 @@ export async function apiRequest(path, options = {}) {
   }
 
   const text = await response.text();
-  const body = text ? JSON.parse(text) : null;
+  let body = null;
+  if (text) {
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = { message: text.slice(0, 400) };
+    }
+  }
 
   if (!response.ok) {
     throw toApiError(response.status, body);
@@ -21,19 +28,40 @@ export async function apiRequest(path, options = {}) {
   return body;
 }
 
+export const NO_RATE_MESSAGE =
+  'На дату записи у сотрудника нет ни одной ставки. Запись создать нельзя.';
+
+export function hasRateOnDate(employee, date) {
+  const iso = String(date || '').slice(0, 10);
+  if (!employee || !iso) {
+    return false;
+  }
+  return (employee.rates || []).some((rate) => String(rate.from).slice(0, 10) <= iso);
+}
+
+function collectFieldMessages(fields) {
+  if (!fields || typeof fields !== 'object' || Array.isArray(fields)) {
+    return [];
+  }
+  return Object.entries(fields).flatMap(([, messages]) => {
+    if (Array.isArray(messages)) {
+      return messages.filter(Boolean);
+    }
+    return messages ? [String(messages)] : [];
+  });
+}
+
 export function toApiError(status, body) {
-  const fields = body?.validationErrors || {};
-  const fieldMessages = Object.entries(fields).flatMap(([name, messages]) =>
-    (messages || []).map((message) => `${name}: ${message}`)
-  );
-  const message = [body?.message, ...fieldMessages]
+  const fields = body?.validationErrors || body?.errors || {};
+  const message = [body?.message, body?.title, body?.detail, ...collectFieldMessages(fields)]
     .filter(Boolean)
+    .filter((item, index, list) => list.indexOf(item) === index)
     .join('\n');
 
-  const error = new Error(message || `Ошибка сервера (${status})`);
+  const error = new Error(message || `Не удалось сохранить запись. Код ${status}.`);
   error.status = status;
   error.code = body?.code;
-  error.fields = fields;
+  error.fields = typeof fields === 'object' && !Array.isArray(fields) ? fields : {};
   return error;
 }
 
