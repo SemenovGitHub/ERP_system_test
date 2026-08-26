@@ -6,7 +6,7 @@
 Нужны Docker и свободные порты 3000, 8080, 27017.
 
 ```bash
-docker compose up --build --force-recreate --remove-orphans
+docker compose up --build --force-recreate --remove-orphans -d
 ```
 
 - UI: http://localhost:3000
