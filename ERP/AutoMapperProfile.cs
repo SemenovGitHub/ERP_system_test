@@ -40,7 +40,8 @@ public class AutoMapperProfile : Profile
 
         // Application -> API DTO
 
-        CreateMap<TimeEntryResponse, TimeEntryDto>();
+        CreateMap<TimeEntryResponse, TimeEntryDto>()
+            .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime(TimeOnly.MinValue)));
 
         CreateMap<PagedTimeEntriesResponse, PagedTimeEntriesDto>();
     }
@@ -73,7 +74,9 @@ public class AutoMapperProfile : Profile
     {
         CreateMap<GetProjectsDto, GetProjectsQuery>();
 
-        CreateMap<ProjectResponse, ProjectDto>();
+        CreateMap<ProjectResponse, ProjectDto>()
+            .ForMember(dest => dest.StartDate, opt => opt.MapFrom(src => src.StartDate.ToDateTime(TimeOnly.MinValue)))
+            .ForMember(dest => dest.EndDate, opt => opt.MapFrom(src => src.EndDate.HasValue ? src.EndDate.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null));
 
         CreateMap<PagedProjectsResponse, PagedProjectsDto>();
     }
