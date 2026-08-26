@@ -4,7 +4,7 @@ React 18 + Vite + Zustand. Два экрана: табель и отчёт. UI �
 
 ## Запуск
 
-Через compose (nginx на :3000, `/api/` проксируется в ERP). Локально:
+Через compose (nginx на :3000, `/api/` проксируется в Api). Локально:
 
 ```bash
 cd Frontend

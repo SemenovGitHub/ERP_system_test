@@ -15,18 +15,18 @@ docker compose up --build --force-recreate --remove-orphans
 
 Сидер каждый такой запуск перезаписывает коллекции. Пересид без полного стека: `docker compose up --force-recreate seeder`. Стоп: `docker compose down -v`.
 
-Локально API: `dotnet run --project ERP/ERP.csproj`. Фронт: см. `Frontend/README.md`.
+Локально API: `dotnet run --project Api/Api.csproj`. Фронт: см. `Frontend/README.md`.
 
 ## Структура
 
 ```
-ERP/           # контроллеры, DTO, AutoMapper, middleware
+Api/           # HTTP: контроллеры, DTO, AutoMapper, middleware
 Domain/        # сущности и правила
 Aplication/    # MediatR-хендлеры, валидаторы, маппинг ответов (имя папки историческое)
 Repository/    # Mongo
 Seeder/Data/   # JSON сида
 Frontend/      # React + Zustand
-ERP.Tests/     # тесты доменных правил
+Tests/         # тесты доменных правил
 ```
 
 Запрос: контроллер → `IMediator.Send` → `ValidationBehavior` → хендлер. `MongoCollections` — ручки к коллекциям, не кэш базы.
