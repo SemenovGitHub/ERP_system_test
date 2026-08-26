@@ -1,89 +1,58 @@
-# ERP System
+# ERP
 
-Система управления рабочим временем и проектами на .NET 8, MongoDB и Docker.
+Табель и отчёт по проектам: .NET 8 API, MongoDB, React. Живое решение — `ERP.sln` (папка `src/` не используется).
 
-## 🚀 Быстрый запуск
+## Запуск
 
-### Требования
-- Docker и Docker Compose
-- Порты 8080 и 27017 должны быть свободны
+Нужны Docker и свободные порты 3000, 8080, 27017.
 
-### Запуск системы
-
-1. **Первый запуск:**
-   ```bash
-   docker compose up --build --force-recreate --remove-orphans
-   ```
-
-2. **Доступные сервисы:**
-   - **Фронтенд**: http://localhost:3000
-   - **API**: http://localhost:8080
-   - **Swagger UI**: http://localhost:8080/swagger
-
-3. **Останавливаем:** 
-   ```bash
-   Ctrl+C
-   ```
-   или
-   ```bash
-   docker compose down -v
-   ```
-
-4. **Следующий запуск:** снова команда из п.1
-   ```bash
-   docker compose up --build --force-recreate --remove-orphans
-   ```
-
-### Что происходит при запуске
-1. 🐳 Запускается MongoDB контейнер
-2. 🌱 Сидер заполняет базу тестовыми данными
-3. 🚀 API поднимается и готов к работе
-4. 🌐 Фронтенд запускается и подключается к API
-
-### Тестовые данные
-После запуска в базе будут:
-- 15 сотрудников 
-- 6 проектов
-- 30 записей времени за 2026 год
-
-### Основные функции
-#### Через веб-интерфейс (http://localhost:3000):
-- Табель: фильтры месяц/сотрудник/проект, таблица записей, модалка создания/редактирования/удаления, итоги часов и стоимости
-- Отчёт по проектам: выбор месяца, % освоения бюджета, подсветка перерасхода, итоговая строка
-
-#### API Endpoints (http://localhost:8080/api):
-- `GET /api/employees` - список сотрудников (с пагинацией)
-- `GET /api/projects` - список проектов (с пагинацией)
-- `GET /api/time-entries?year=2026&month=3` - записи времени за март 2026
-- `POST /api/time-entries` - создание записи времени
-- `GET /api/reports/projects?year=2026&month=3` - отчет по проектам за март 2026
-
-## 🛠 Разработка
-
-### Структура проекта
-```
-ERP_system_test/
-├── ERP/                 # Основное API приложение
-├── Domain/              # Бизнес-логика и правила
-├── Aplication/          # Обработчики команд и запросов
-├── Repository/          # Доступ к данным MongoDB
-├── Seeder/              # Заполнение тестовыми данными
-├── Frontend/            # React + Zustand (табель и отчёт)
-│   └── NOTES.md         # Почему выбран Zustand
-└── compose.yaml         # Docker Compose конфигурация
-```
-
-### Docker команды
 ```bash
-# Полный перезапуск с пересборкой
 docker compose up --build --force-recreate --remove-orphans
-
-# Остановка с очисткой данных
-docker compose down -v
-
-# Просмотр логов
-docker compose logs
-
-# Только сборка без запуска
-docker compose build
 ```
+
+- UI: http://localhost:3000
+- API / Swagger: http://localhost:8080 / http://localhost:8080/swagger
+
+Сидер каждый такой запуск перезаписывает коллекции. Пересид без полного стека: `docker compose up --force-recreate seeder`. Стоп: `docker compose down -v`.
+
+Локально API: `dotnet run --project ERP/ERP.csproj`. Фронт: см. `Frontend/README.md`.
+
+## Структура
+
+```
+ERP/           # контроллеры, DTO, AutoMapper, middleware
+Domain/        # сущности и правила
+Aplication/    # MediatR-хендлеры, валидаторы, маппинг ответов (имя папки историческое)
+Repository/    # Mongo
+Seeder/Data/   # JSON сида
+Frontend/      # React + Zustand
+ERP.Tests/     # тесты доменных правил
+```
+
+Запрос: контроллер → `IMediator.Send` → `ValidationBehavior` → хендлер. `MongoCollections` — ручки к коллекциям, не кэш базы.
+
+## Правила
+
+- Ставка на дату записи: последняя с `From <= date` (`RateResolver`). Стоимость не хранится, считается при чтении (`TimeEntryMapper` / отчёт — Mongo `$lookup` + `CostStage`).
+- Часы записи: > 0, шаг 0.5, ≤ 24. Сумма за день ≤ 24. Переработка: сумма за день > 12.
+- Дата должна попадать в период проекта. Закрытый месяц — запись нельзя менять.
+- Отчёт: `% = cost / budget * 100`. Перерасход: `cost > budget`. Риск: перерасход или освоение > 80%.
+
+## API
+
+| Метод | Путь |
+|---|---|
+| GET | `/api/employees`, `/api/projects` |
+| PUT | `/api/employees/{id}/rates` |
+| GET/POST | `/api/time-entries` |
+| PUT/DELETE | `/api/time-entries/{id}` |
+| GET | `/api/reports/projects?year=&month=` |
+| POST | `/api/periods/close`, `/api/periods/open` |
+
+Ошибки: `{ code, message, validationErrors }`. Бизнес — `BusinessException` (в т.ч. 409 `CONCURRENCY_CONFLICT`).
+
+## Сид
+
+Иванов: 500 ₽ с 01.01.2026, 600 ₽ с 01.03.2026. Петрова: 700 ₽ с 01.02.2026.  
+П-001 бюджет 20 000, до 31.03.2026. П-002 бюджет 5 000, без даты окончания.  
+Записи: 20.02 Иванов 8 ч; 05.03 Иванов 8 ч; 05.03 Петрова 4 ч; 06.03 Петрова 10 ч.
