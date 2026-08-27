@@ -28,7 +28,7 @@ Frontend/      # React + Zustand
 Tests/         # тесты доменных правил
 ```
 
-Запрос: контроллер → `IMediator.Send` → `ValidationBehavior` → хендлер. `MongoCollections` — ручки к коллекциям, не кэш базы.
+Запрос: контроллер → `IMediator.Send` → хендлер → `IDomainValidator<T>.ValidateAsync` на CRUD.
 
 ## API
 

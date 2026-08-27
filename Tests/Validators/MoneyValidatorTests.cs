@@ -1,9 +1,9 @@
-using Domain.Rules;
+using Application.Validators;
 using FluentAssertions;
 
-namespace ERP.Tests.Rules;
+namespace Tests.Validators;
 
-public sealed class MoneyTests
+public sealed class MoneyValidatorTests
 {
     [Theory]
     [InlineData(1.224, 1.22)]
@@ -11,13 +11,13 @@ public sealed class MoneyTests
     [InlineData(1.235, 1.24)]
     public void Round_ToTwoDecimals_UsesAwayFromZero(decimal value, decimal expected)
     {
-        Money.Round(value).Should().Be(expected);
+        MoneyValidator.Round(value).Should().Be(expected);
     }
 
     [Fact]
     public void Cost_MultipliesHoursByRateAndRoundsAwayFromZero()
     {
-        Money.Cost(1.5m, 10.005m).Should().Be(15.01m);
-        Money.Cost(7.5m, 600m).Should().Be(4500m);
+        MoneyValidator.Cost(1.5m, 10.005m).Should().Be(15.01m);
+        MoneyValidator.Cost(7.5m, 600m).Should().Be(4500m);
     }
 }

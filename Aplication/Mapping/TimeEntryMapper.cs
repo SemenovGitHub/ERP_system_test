@@ -1,7 +1,8 @@
 using Application.Models.TimeEntries.Responses;
+using Application.Validators;
+using Application.Validators.TimeEntries;
 using Domain.Employees;
 using Domain.Projects;
-using Domain.Rules;
 using Domain.TimeEntries;
 
 namespace Application.Mapping;
@@ -14,7 +15,8 @@ internal static class TimeEntryMapper
         Project project,
         decimal hoursForDay)
     {
-        var rate = RateResolver.Require(employee.Rates, entry.Date);
+        var rate = TimeEntryConstraints.FindRate(employee.Rates, entry.Date)
+            ?? throw new InvalidOperationException("На дату записи нет ставки.");
 
         return new TimeEntryResponse
         {
@@ -27,9 +29,9 @@ internal static class TimeEntryMapper
             ProjectName = project.Name,
             Hours = entry.Hours,
             Rate = rate,
-            Cost = Money.Cost(entry.Hours, rate),
+            Cost = MoneyValidator.Cost(entry.Hours, rate),
             Comment = entry.Comment,
-            IsOvertime = HoursRules.IsOvertime(hoursForDay),
+            IsOvertime = TimeEntryConstraints.IsOvertime(hoursForDay),
             Version = entry.Version
         };
     }
