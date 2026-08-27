@@ -1,6 +1,6 @@
-namespace Domain.Rules;
+namespace Application.Validators;
 
-public static class Money
+public static class MoneyValidator
 {
     public static decimal Round(decimal value) =>
         Math.Round(value, 2, MidpointRounding.AwayFromZero);

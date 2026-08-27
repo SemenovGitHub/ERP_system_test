@@ -2,10 +2,10 @@ using Application.Interfaces;
 using Application.Mapping;
 using Application.Models.TimeEntries.Commands;
 using Application.Models.TimeEntries.Responses;
+using Application.Validators;
 using Domain.Employees;
 using Domain.Exceptions;
 using Domain.Projects;
-using Domain.Rules;
 using Domain.TimeEntries;
 using MediatR;
 
@@ -16,44 +16,35 @@ public sealed class CreateTimeEntryHandler
 {
     private readonly IEmployeeRepository _employees;
     private readonly IProjectRepository _projects;
-    private readonly IPeriodRepository _periods;
     private readonly ITimeEntryRepository _timeEntries;
+    private readonly IDomainValidator<CreateTimeEntryCommand> _validator;
 
     public CreateTimeEntryHandler(
         IEmployeeRepository employees,
         IProjectRepository projects,
-        IPeriodRepository periods,
-        ITimeEntryRepository timeEntries)
+        ITimeEntryRepository timeEntries,
+        IDomainValidator<CreateTimeEntryCommand> validator)
     {
         _employees = employees;
         _projects = projects;
-        _periods = periods;
         _timeEntries = timeEntries;
+        _validator = validator;
     }
 
     public async Task<TimeEntryResponse> Handle(
         CreateTimeEntryCommand request,
         CancellationToken cancellationToken)
     {
-        HoursRules.EnsureValidEntryHours(request.Hours);
+        await _validator.ValidateAsync(request, cancellationToken);
 
         var employee = await RequireEmployee(request.EmployeeId, cancellationToken);
         var project = await RequireProject(request.ProjectId, cancellationToken);
-
-        var isClosed = await _periods.IsClosedAsync(
-            request.Date.Year,
-            request.Date.Month,
-            cancellationToken);
-        ClosedPeriodRules.EnsureOpen(isClosed, request.Date);
-        ProjectPeriodRules.EnsureDateFits(project, request.Date);
-        RateResolver.Require(employee.Rates, request.Date);
 
         var hoursForDay = await _timeEntries.GetHoursForDayAsync(
             request.EmployeeId,
             request.Date,
             excludeEntryId: null,
             cancellationToken);
-        HoursRules.EnsureDailyLimit(hoursForDay, request.Hours);
 
         var now = DateTime.UtcNow;
         var entry = new TimeEntry

@@ -1,7 +1,11 @@
-using Application.Behaviors;
 using Application.Handlers.TimeEntries;
+using Application.Models.Employees.Commands;
+using Application.Models.Periods.Commands;
+using Application.Models.TimeEntries.Commands;
+using Application.Validators;
+using Application.Validators.Employees;
+using Application.Validators.Periods;
 using Application.Validators.TimeEntries;
-using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -13,11 +17,14 @@ public static class DependencyInjection
         services.AddMediatR(configuration =>
         {
             configuration.RegisterServicesFromAssembly(typeof(CreateTimeEntryHandler).Assembly);
-            // FluentValidation runs here, before any handler. See Application.Behaviors.ValidationBehavior.
-            configuration.AddOpenBehavior(typeof(ValidationBehavior<,>));
         });
 
-        services.AddValidatorsFromAssembly(typeof(CreateTimeEntryCommandValidator).Assembly);
+        services.AddTransient<IDomainValidator<CreateTimeEntryCommand>, CreateTimeEntryValidator>();
+        services.AddTransient<IDomainValidator<UpdateTimeEntryCommand>, UpdateTimeEntryValidator>();
+        services.AddTransient<IDomainValidator<DeleteTimeEntryCommand>, DeleteTimeEntryValidator>();
+        services.AddTransient<IDomainValidator<UpdateEmployeeRatesCommand>, UpdateEmployeeRatesValidator>();
+        services.AddTransient<IDomainValidator<ClosePeriodCommand>, ClosePeriodValidator>();
+        services.AddTransient<IDomainValidator<OpenPeriodCommand>, OpenPeriodValidator>();
 
         return services;
     }
