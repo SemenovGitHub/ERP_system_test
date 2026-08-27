@@ -28,12 +28,10 @@ public sealed class DatabaseSeeder
 
         var createdAt = DateTime.UtcNow;
 
-        // Load data from JSON files
         var employees = await LoadEmployeesAsync(cancellationToken);
         var projects = await LoadProjectsAsync(cancellationToken);
         var timeEntries = await LoadTimeEntriesAsync(cancellationToken);
 
-        // Convert and insert employees
         var employeeDocuments = employees.Select(e => new EmployeeDocument
         {
             Id = Guid.Parse(e.Id),
@@ -50,7 +48,6 @@ public sealed class DatabaseSeeder
             employeeDocuments,
             cancellationToken: cancellationToken);
 
-        // Convert and insert projects
         var projectDocuments = projects.Select(p => new ProjectDocument
         {
             Id = Guid.Parse(p.Id),
@@ -65,7 +62,6 @@ public sealed class DatabaseSeeder
             projectDocuments,
             cancellationToken: cancellationToken);
 
-        // Convert and insert time entries
         var timeEntryDocuments = timeEntries.Select(te => new TimeEntryDocument
         {
             Id = Guid.NewGuid(),
@@ -81,28 +77,23 @@ public sealed class DatabaseSeeder
         await _collections.TimeEntriesCollection.InsertManyAsync(
             timeEntryDocuments,
             cancellationToken: cancellationToken);
-
-        Console.WriteLine($"База наполнена данными из JSON файлов:");
-        Console.WriteLine($"- Сотрудники: {employeeDocuments.Count}");
-        Console.WriteLine($"- Проекты: {projectDocuments.Count}");
-        Console.WriteLine($"- Записи времени: {timeEntryDocuments.Count}");
     }
 
     private async Task<List<EmployeeData>> LoadEmployeesAsync(CancellationToken cancellationToken)
     {
-        var json = await File.ReadAllTextAsync("Data/employees.json");
-        return JsonSerializer.Deserialize<List<EmployeeData>>(json) ?? new List<EmployeeData>();
+        var json = await File.ReadAllTextAsync("Data/employees.json", cancellationToken);
+        return JsonSerializer.Deserialize<List<EmployeeData>>(json) ?? [];
     }
 
     private async Task<List<ProjectData>> LoadProjectsAsync(CancellationToken cancellationToken)
     {
-        var json = await File.ReadAllTextAsync("Data/projects.json");
-        return JsonSerializer.Deserialize<List<ProjectData>>(json) ?? new List<ProjectData>();
+        var json = await File.ReadAllTextAsync("Data/projects.json", cancellationToken);
+        return JsonSerializer.Deserialize<List<ProjectData>>(json) ?? [];
     }
 
     private async Task<List<TimeEntryData>> LoadTimeEntriesAsync(CancellationToken cancellationToken)
     {
-        var json = await File.ReadAllTextAsync("Data/timeEntries.json");
-        return JsonSerializer.Deserialize<List<TimeEntryData>>(json) ?? new List<TimeEntryData>();
+        var json = await File.ReadAllTextAsync("Data/timeEntries.json", cancellationToken);
+        return JsonSerializer.Deserialize<List<TimeEntryData>>(json) ?? [];
     }
 }
