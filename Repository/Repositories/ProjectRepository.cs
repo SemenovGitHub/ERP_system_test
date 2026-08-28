@@ -1,5 +1,6 @@
 using Application.Interfaces;
-using Domain.Projects;
+using AutoMapper;
+using Domain.Models;
 using MongoDB.Driver;
 using Repository.Documents;
 using Repository.Mongo;
@@ -9,22 +10,24 @@ namespace Repository.Repositories;
 public sealed class ProjectRepository : IProjectRepository
 {
     private readonly MongoCollections _collections;
+    private readonly IMapper _mapper;
 
-    public ProjectRepository(MongoCollections collections)
+    public ProjectRepository(MongoCollections collections, IMapper mapper)
     {
         _collections = collections;
+        _mapper = mapper;
     }
 
-    public async Task<Project?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<ProjectModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var document = await _collections.ProjectsCollection
             .Find(project => project.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return document is null ? null : DocumentMapper.ToDomain(document);
+        return document is null ? null : _mapper.Map<ProjectModel>(document);
     }
 
-    public async Task<IReadOnlyList<Project>> GetByIdsAsync(
+    public async Task<IReadOnlyList<ProjectModel>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken)
     {
@@ -37,10 +40,10 @@ public sealed class ProjectRepository : IProjectRepository
             .Find(Builders<ProjectDocument>.Filter.In(project => project.Id, ids))
             .ToListAsync(cancellationToken);
 
-        return documents.Select(DocumentMapper.ToDomain).ToList();
+        return _mapper.Map<List<ProjectModel>>(documents);
     }
 
-    public async Task<PagedResult<Project>> QueryAsync(
+    public async Task<PagedResult<ProjectModel>> QueryAsync(
         IReadOnlyCollection<Guid>? ids,
         string? code,
         int page,
@@ -73,9 +76,9 @@ public sealed class ProjectRepository : IProjectRepository
 
         await Task.WhenAll(totalTask, itemsTask);
 
-        return new PagedResult<Project>
+        return new PagedResult<ProjectModel>
         {
-            Items = itemsTask.Result.Select(DocumentMapper.ToDomain).ToList(),
+            Items = _mapper.Map<List<ProjectModel>>(itemsTask.Result),
             TotalCount = totalTask.Result
         };
     }

@@ -1,11 +1,12 @@
-using AutoMapper;
+using Api.Abstractions.Models.Employees;
 using Application.Models.Employees.Commands;
 using Application.Models.Employees.Queries;
+using AutoMapper;
 using ERP.Abstractions.Models.Employees;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.Controllers;
+namespace Api.Controllers;
 
 [ApiController]
 [Route("api/employees")]

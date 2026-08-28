@@ -1,10 +1,10 @@
+using Api.Middleware;
 using Application;
-using ERP.Middleware;
 using Microsoft.AspNetCore.Mvc;
 using Repository;
 using Repository.Mongo;
 
-namespace ERP;
+namespace Api;
 
 public class Program
 {
@@ -14,7 +14,7 @@ public class Program
 
         builder.Services.AddApplication();
         builder.Services.AddMongoRepositories(builder.Configuration);
-        builder.Services.AddAutoMapper(typeof(AutoMapperProfile).Assembly);
+        builder.Services.AddAutoMapper(typeof(Api.AutoMapperProfile), typeof(Repository.AutoMapperProfile));
         builder.Services.AddControllers()
             .ConfigureApiBehaviorOptions(options =>
             {
@@ -38,7 +38,7 @@ public class Program
             });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
-        
+
         // Настройка CORS для фронтенда
         builder.Services.AddCors(options =>
         {
@@ -57,7 +57,7 @@ public class Program
         await indexes.EnsureIndexesAsync(CancellationToken.None);
 
         app.UseMiddleware<GlobalExceptionMiddleware>();
-        
+
         // Включаем CORS
         app.UseCors("AllowFrontend");
 

@@ -1,9 +1,8 @@
 using Application.Interfaces;
 using Application.Models.TimeEntries.Commands;
 using Application.Validators;
-using Domain.Employees;
 using Domain.Exceptions;
-using Domain.Projects;
+using Domain.Models;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -64,7 +63,7 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
     [Fact]
     public async Task Create_WhenProjectHasNoEndDate_AllowsDateAfterStart()
     {
-        var project = new Project
+        var project = new ProjectModel
         {
             Id = _projectId,
             Code = "П-001",
@@ -79,14 +78,14 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
         await act.Should().NotThrowAsync();
     }
 
-    private IDomainValidator<CreateTimeEntryCommand> Validator(Project? project = null)
+    private IDomainValidator<CreateTimeEntryCommand> Validator(ProjectModel? project = null)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
             .Setup(repository => repository.GetByIdAsync(_employeeId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.Employee(
                 _employeeId,
-                [new Rate { From = new DateOnly(2026, 1, 1), Value = 500 }]));
+                [new RateModel { From = new DateOnly(2026, 1, 1), Value = 500 }]));
 
         var projectRepositoryMock = new Mock<IProjectRepository>();
         projectRepositoryMock

@@ -2,8 +2,8 @@ using Application.Interfaces;
 using Application.Models.Employees.Commands;
 using Application.Models.Employees.Responses;
 using Application.Validators;
-using Domain.Employees;
 using Domain.Exceptions;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Handlers.Employees;
@@ -32,7 +32,7 @@ public sealed class UpdateEmployeeRatesHandler
             ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник не найден.", 404);
 
         var rates = request.Rates
-            .Select(rate => new Rate { From = rate.From, Value = rate.Value })
+            .Select(rate => new RateModel { From = rate.From, Value = rate.Value })
             .OrderBy(rate => rate.From)
             .ToList();
 

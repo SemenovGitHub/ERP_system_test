@@ -1,11 +1,10 @@
-using Domain.Employees;
-using Domain.Projects;
+using Domain.Models;
 
 namespace ERP.Tests;
 
 internal static class TestData
 {
-    public static Employee Employee(Guid id, IReadOnlyList<Rate> rates) =>
+    public static EmployeeModel Employee(Guid id, IReadOnlyList<RateModel> rates) =>
         new()
         {
             Id = id,
@@ -14,7 +13,7 @@ internal static class TestData
             Rates = rates
         };
 
-    public static Project Project(Guid? id = null) =>
+    public static ProjectModel Project(Guid? id = null) =>
         new()
         {
             Id = id ?? Guid.NewGuid(),
@@ -25,4 +24,3 @@ internal static class TestData
             EndDate = new DateOnly(2026, 12, 31)
         };
 }
-

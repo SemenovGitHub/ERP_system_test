@@ -1,7 +1,7 @@
 using Application.Interfaces;
 using Application.Models.TimeEntries.Commands;
 using Application.Validators;
-using Domain.Employees;
+using Domain.Models;
 using Domain.Exceptions;
 using ERP.Tests;
 using FluentAssertions;
@@ -19,9 +19,9 @@ public sealed class CreateTimeEntryCommandValidatorTests
     {
         var validator = CreateValidator(rates:
         [
-            new Rate { From = new DateOnly(2026, 1, 1), Value = 500 },
-            new Rate { From = new DateOnly(2026, 3, 1), Value = 700 },
-            new Rate { From = new DateOnly(2026, 6, 1), Value = 900 }
+            new RateModel { From = new DateOnly(2026, 1, 1), Value = 500 },
+            new RateModel { From = new DateOnly(2026, 3, 1), Value = 700 },
+            new RateModel { From = new DateOnly(2026, 6, 1), Value = 900 }
         ]);
 
         var act = () => validator.ValidateAsync(Command(new DateOnly(2026, 4, 15)));
@@ -34,8 +34,8 @@ public sealed class CreateTimeEntryCommandValidatorTests
     {
         var validator = CreateValidator(rates:
         [
-            new Rate { From = new DateOnly(2026, 1, 1), Value = 500 },
-            new Rate { From = new DateOnly(2026, 3, 1), Value = 700 }
+            new RateModel { From = new DateOnly(2026, 1, 1), Value = 500 },
+            new RateModel { From = new DateOnly(2026, 3, 1), Value = 700 }
         ]);
 
         var act = () => validator.ValidateAsync(Command(new DateOnly(2026, 3, 1)));
@@ -48,7 +48,7 @@ public sealed class CreateTimeEntryCommandValidatorTests
     {
         var validator = CreateValidator(rates:
         [
-            new Rate { From = new DateOnly(2026, 3, 1), Value = 700 }
+            new RateModel { From = new DateOnly(2026, 3, 1), Value = 700 }
         ]);
 
         var act = () => validator.ValidateAsync(Command(new DateOnly(2026, 2, 28)));
@@ -58,7 +58,7 @@ public sealed class CreateTimeEntryCommandValidatorTests
         exception.Message.Should().Be("На дату записи у сотрудника нет ни одной ставки. Запись создать нельзя.");
     }
 
-    private IDomainValidator<CreateTimeEntryCommand> CreateValidator(Rate[] rates)
+    private IDomainValidator<CreateTimeEntryCommand> CreateValidator(RateModel[] rates)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock

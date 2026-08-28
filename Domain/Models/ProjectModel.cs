@@ -1,6 +1,6 @@
-namespace Domain.Projects;
+namespace Domain.Models;
 
-public sealed class Project
+public sealed class ProjectModel
 {
     public Guid Id { get; init; }
 

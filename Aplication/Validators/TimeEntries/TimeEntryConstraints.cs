@@ -1,4 +1,4 @@
-using Domain.Employees;
+using Domain.Models;
 
 namespace Application.Validators.TimeEntries;
 
@@ -13,7 +13,7 @@ internal static class TimeEntryConstraints
         && hours <= MaxHoursPerDay
         && hours / Step == decimal.Truncate(hours / Step);
 
-    public static decimal? FindRate(IEnumerable<Rate> rates, DateOnly date) =>
+    public static decimal? FindRate(IEnumerable<RateModel> rates, DateOnly date) =>
         rates
             .Where(rate => rate.From <= date)
             .OrderByDescending(rate => rate.From)

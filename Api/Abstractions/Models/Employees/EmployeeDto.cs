@@ -1,4 +1,6 @@
-namespace ERP.Abstractions.Models.Employees;
+using ERP.Abstractions.Models.Employees;
+
+namespace Api.Abstractions.Models.Employees;
 
 public sealed class EmployeeDto
 {

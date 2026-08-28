@@ -1,11 +1,11 @@
+using Application.Models.TimeEntries.Commands;
+using Application.Models.TimeEntries.Queries;
 using AutoMapper;
 using ERP.Abstractions.Models.TimeEntries;
 using MediatR;
-using Application.Models.TimeEntries.Commands;
-using Application.Models.TimeEntries.Queries;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.Controllers;
+namespace Api.Controllers;
 
 [ApiController]
 [Route("api/time-entries")]

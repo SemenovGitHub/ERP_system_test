@@ -1,6 +1,6 @@
-namespace Domain.Employees;
+namespace Domain.Models;
 
-public sealed class Rate
+public sealed class RateModel
 {
     public DateOnly From { get; init; }
 
