@@ -1,10 +1,10 @@
+using Application.Models.Reports.Queries;
 using AutoMapper;
 using ERP.Abstractions.Models.Reports;
 using MediatR;
-using Application.Models.Reports.Queries;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.Controllers;
+namespace Api.Controllers;
 
 [ApiController]
 [Route("api/reports")]

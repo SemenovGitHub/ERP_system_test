@@ -1,7 +1,7 @@
 using Application.Interfaces;
 using Application.Models.TimeEntries.Commands;
 using Application.Validators;
-using Domain.Employees;
+using Domain.Models;
 using Domain.Exceptions;
 using ERP.Tests;
 using FluentAssertions;
@@ -44,7 +44,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
             .Setup(repository => repository.GetByIdAsync(_employeeId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.Employee(
                 _employeeId,
-                [new Rate { From = new DateOnly(2026, 1, 1), Value = 500 }]));
+                [new RateModel { From = new DateOnly(2026, 1, 1), Value = 500 }]));
 
         var projectRepositoryMock = new Mock<IProjectRepository>();
         projectRepositoryMock

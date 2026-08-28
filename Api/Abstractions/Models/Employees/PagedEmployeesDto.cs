@@ -1,3 +1,5 @@
+using Api.Abstractions.Models.Employees;
+
 namespace ERP.Abstractions.Models.Employees;
 
 public sealed class PagedEmployeesDto

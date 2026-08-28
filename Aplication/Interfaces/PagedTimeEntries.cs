@@ -1,10 +1,10 @@
-using Domain.TimeEntries;
+using Domain.Models;
 
 namespace Application.Interfaces;
 
 public sealed class PagedTimeEntries
 {
-    public IReadOnlyList<TimeEntry> Items { get; init; } = [];
+    public IReadOnlyList<TimeEntryModel> Items { get; init; } = [];
 
     public long TotalCount { get; init; }
 

@@ -1,6 +1,6 @@
-namespace Domain.TimeEntries;
+namespace Domain.Models;
 
-public sealed class TimeEntry
+public sealed class TimeEntryModel
 {
     public Guid Id { get; init; }
 

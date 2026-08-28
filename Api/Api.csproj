@@ -8,7 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoMapper" Version="14.0.0" />
+        <PackageReference Include="AutoMapper" Version="14.0.0">
+          <NoWarn>NU1903</NoWarn>
+        </PackageReference>
         <PackageReference Include="MediatR" Version="13.1.0" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2"/>
     </ItemGroup>

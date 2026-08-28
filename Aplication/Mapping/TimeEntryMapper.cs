@@ -1,18 +1,16 @@
 using Application.Models.TimeEntries.Responses;
 using Application.Validators;
 using Application.Validators.TimeEntries;
-using Domain.Employees;
-using Domain.Projects;
-using Domain.TimeEntries;
+using Domain.Models;
 
 namespace Application.Mapping;
 
 internal static class TimeEntryMapper
 {
     public static TimeEntryResponse Map(
-        TimeEntry entry,
-        Employee employee,
-        Project project,
+        TimeEntryModel entry,
+        EmployeeModel employee,
+        ProjectModel project,
         decimal hoursForDay)
     {
         var rate = TimeEntryConstraints.FindRate(employee.Rates, entry.Date)

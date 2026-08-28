@@ -1,9 +1,4 @@
-using AutoMapper;
-using ERP.Abstractions.Models.Employees;
-using ERP.Abstractions.Models.Periods;
-using ERP.Abstractions.Models.Projects;
-using ERP.Abstractions.Models.Reports;
-using ERP.Abstractions.Models.TimeEntries;
+using Api.Abstractions.Models.Employees;
 using Application.Models.Employees.Commands;
 using Application.Models.Employees.Queries;
 using Application.Models.Employees.Responses;
@@ -15,8 +10,14 @@ using Application.Models.Reports.Responses;
 using Application.Models.TimeEntries.Commands;
 using Application.Models.TimeEntries.Queries;
 using Application.Models.TimeEntries.Responses;
+using AutoMapper;
+using ERP.Abstractions.Models.Employees;
+using ERP.Abstractions.Models.Periods;
+using ERP.Abstractions.Models.Projects;
+using ERP.Abstractions.Models.Reports;
+using ERP.Abstractions.Models.TimeEntries;
 
-namespace ERP;
+namespace Api;
 
 public class AutoMapperProfile : Profile
 {

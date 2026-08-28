@@ -3,10 +3,8 @@ using Application.Mapping;
 using Application.Models.TimeEntries.Commands;
 using Application.Models.TimeEntries.Responses;
 using Application.Validators;
-using Domain.Employees;
 using Domain.Exceptions;
-using Domain.Projects;
-using Domain.TimeEntries;
+using Domain.Models;
 using MediatR;
 
 namespace Application.Handlers.TimeEntries;
@@ -47,7 +45,7 @@ public sealed class CreateTimeEntryHandler
             cancellationToken);
 
         var now = DateTime.UtcNow;
-        var entry = new TimeEntry
+        var entry = new TimeEntryModel
         {
             Id = Guid.NewGuid(),
             EmployeeId = request.EmployeeId,
@@ -64,13 +62,13 @@ public sealed class CreateTimeEntryHandler
         return TimeEntryMapper.Map(entry, employee, project, hoursForDay + request.Hours);
     }
 
-    private async Task<Employee> RequireEmployee(Guid id, CancellationToken cancellationToken)
+    private async Task<EmployeeModel> RequireEmployee(Guid id, CancellationToken cancellationToken)
     {
         return await _employees.GetByIdAsync(id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник не найден.", 404);
     }
 
-    private async Task<Project> RequireProject(Guid id, CancellationToken cancellationToken)
+    private async Task<ProjectModel> RequireProject(Guid id, CancellationToken cancellationToken)
     {
         return await _projects.GetByIdAsync(id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Проект не найден.", 404);
