@@ -1,4 +1,6 @@
 using Application.Interfaces;
+using Domain.Interfaces;
+using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -15,6 +17,8 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         MongoSerializers.Register();
+
+        services.AddAutoMapper(typeof(AutoMapperProfile));
 
         services.AddOptions<MongoSettings>()
             .Bind(configuration.GetSection(MongoSettings.SectionName))

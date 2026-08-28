@@ -1,6 +1,6 @@
-namespace Domain.Employees;
+namespace Domain.Models;
 
-public sealed class Employee
+public sealed class EmployeeModel
 {
     public Guid Id { get; init; }
 
@@ -8,5 +8,5 @@ public sealed class Employee
 
     public string Department { get; init; } = null!;
 
-    public IReadOnlyList<Rate> Rates { get; init; } = [];
+    public IReadOnlyList<RateModel> Rates { get; init; } = [];
 }

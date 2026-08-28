@@ -1,8 +1,8 @@
-using Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
+using Domain.Exceptions;
 
-namespace ERP.Middleware;
+namespace Api.Middleware;
 
 /// <summary>
 /// Global exception handling middleware that converts exceptions to appropriate HTTP responses
@@ -52,7 +52,7 @@ public sealed class GlobalExceptionMiddleware
                     validationEx.Message,
                     validationEx.ValidationErrors
                 )),
-            
+
             BusinessException businessEx => (
                 (HttpStatusCode)businessEx.StatusCode,
                 new ErrorResponse(
@@ -60,7 +60,7 @@ public sealed class GlobalExceptionMiddleware
                     businessEx.Message,
                     null
                 )),
-            
+
             ArgumentException argumentEx => (
                 HttpStatusCode.BadRequest,
                 new ErrorResponse(
@@ -68,7 +68,7 @@ public sealed class GlobalExceptionMiddleware
                     argumentEx.Message,
                     null
                 )),
-            
+
             InvalidOperationException => (
                 HttpStatusCode.Conflict,
                 new ErrorResponse(
@@ -76,7 +76,7 @@ public sealed class GlobalExceptionMiddleware
                     "The requested operation is not valid in the current state",
                     null
                 )),
-            
+
             _ => (
                 HttpStatusCode.InternalServerError,
                 new ErrorResponse(

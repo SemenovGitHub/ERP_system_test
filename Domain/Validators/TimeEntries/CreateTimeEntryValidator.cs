@@ -1,14 +1,14 @@
-using Application.Interfaces;
-using Application.Models.TimeEntries.Commands;
 using Domain.Exceptions;
+using Domain.Interfaces;
+using Domain.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace Application.Validators.TimeEntries;
+namespace Domain.Validators.TimeEntries;
 
 public sealed class CreateTimeEntryValidator
-    : AbstractValidator<CreateTimeEntryCommand>,
-      IDomainValidator<CreateTimeEntryCommand>
+    : AbstractValidator<TimeEntryModel>,
+      ICreateTimeEntryValidator
 {
     private readonly IEmployeeRepository _employees;
     private readonly IProjectRepository _projects;
@@ -43,8 +43,8 @@ public sealed class CreateTimeEntryValidator
             () => RuleFor(x => x).CustomAsync(ValidateBusinessAsync));
     }
 
-    async Task IDomainValidator<CreateTimeEntryCommand>.ValidateAsync(
-        CreateTimeEntryCommand instance,
+    async Task IDomainValidator<TimeEntryModel>.ValidateAsync(
+        TimeEntryModel instance,
         CancellationToken cancellationToken)
     {
         var result = await base.ValidateAsync(instance, cancellationToken);
@@ -52,83 +52,83 @@ public sealed class CreateTimeEntryValidator
     }
 
     private async Task ValidateBusinessAsync(
-        CreateTimeEntryCommand command,
-        ValidationContext<CreateTimeEntryCommand> context,
+        TimeEntryModel entry,
+        ValidationContext<TimeEntryModel> context,
         CancellationToken cancellationToken)
     {
         var isClosed = await _periods.IsClosedAsync(
-            command.Date.Year,
-            command.Date.Month,
+            entry.Date.Year,
+            entry.Date.Month,
             cancellationToken);
         if (isClosed)
         {
             context.AddFailure(Failure(
-                nameof(command.Date),
+                nameof(entry.Date),
                 ErrorCodes.ClosedPeriod,
-                $"Период {command.Date.Month:00}.{command.Date.Year} закрыт. Создавать, изменять и удалять записи нельзя."));
+                $"Период {entry.Date.Month:00}.{entry.Date.Year} закрыт. Создавать, изменять и удалять записи нельзя."));
             return;
         }
 
-        var employee = await _employees.GetByIdAsync(command.EmployeeId, cancellationToken);
+        var employee = await _employees.GetByIdAsync(entry.EmployeeId, cancellationToken);
         if (employee is null)
         {
             context.AddFailure(Failure(
-                nameof(command.EmployeeId),
+                nameof(entry.EmployeeId),
                 ErrorCodes.NotFound,
                 "Сотрудник не найден."));
             return;
         }
 
-        var project = await _projects.GetByIdAsync(command.ProjectId, cancellationToken);
+        var project = await _projects.GetByIdAsync(entry.ProjectId, cancellationToken);
         if (project is null)
         {
             context.AddFailure(Failure(
-                nameof(command.ProjectId),
+                nameof(entry.ProjectId),
                 ErrorCodes.NotFound,
                 "Проект не найден."));
             return;
         }
 
-        if (command.Date < project.StartDate)
+        if (entry.Date < project.StartDate)
         {
             context.AddFailure(Failure(
-                nameof(command.Date),
+                nameof(entry.Date),
                 ErrorCodes.ProjectDateOutOfRange,
-                $"Дата записи {command.Date:dd.MM.yyyy} раньше начала проекта {project.Code} ({project.StartDate:dd.MM.yyyy})."));
+                $"Дата записи {entry.Date:dd.MM.yyyy} раньше начала проекта {project.Code} ({project.StartDate:dd.MM.yyyy})."));
             return;
         }
 
-        if (project.EndDate is { } end && command.Date > end)
+        if (project.EndDate is { } end && entry.Date > end)
         {
             context.AddFailure(Failure(
-                nameof(command.Date),
+                nameof(entry.Date),
                 ErrorCodes.ProjectDateOutOfRange,
-                $"Дата записи {command.Date:dd.MM.yyyy} позже окончания проекта {project.Code} ({end:dd.MM.yyyy})."));
+                $"Дата записи {entry.Date:dd.MM.yyyy} позже окончания проекта {project.Code} ({end:dd.MM.yyyy})."));
             return;
         }
 
-        if (TimeEntryConstraints.FindRate(employee.Rates, command.Date) is null)
+        if (TimeEntryConstraints.FindRate(employee.Rates, entry.Date) is null)
         {
             context.AddFailure(Failure(
-                nameof(command.Date),
+                nameof(entry.Date),
                 ErrorCodes.NoRate,
                 "На дату записи у сотрудника нет ни одной ставки. Запись создать нельзя."));
             return;
         }
 
         var hoursForDay = await _timeEntries.GetHoursForDayAsync(
-            command.EmployeeId,
-            command.Date,
+            entry.EmployeeId,
+            entry.Date,
             excludeEntryId: null,
             cancellationToken);
-        var total = hoursForDay + command.Hours;
+        var total = hoursForDay + entry.Hours;
         if (total > TimeEntryConstraints.MaxHoursPerDay)
         {
             context.AddFailure(Failure(
-                nameof(command.Hours),
+                nameof(entry.Hours),
                 ErrorCodes.DailyHoursLimit,
                 $"Суммарно у сотрудника за день не может быть больше {TimeEntryConstraints.MaxHoursPerDay} часов. " +
-                $"Уже учтено {hoursForDay}, попытка добавить {command.Hours} (итого {total})."));
+                $"Уже учтено {hoursForDay}, попытка добавить {entry.Hours} (итого {total})."));
         }
     }
 

@@ -1,7 +1,9 @@
-using Application.Interfaces;
-using Domain.Employees;
+using Domain.Interfaces;
+using AutoMapper;
 using Domain.Exceptions;
+using Domain.Models;
 using MongoDB.Driver;
+using Repository.Documents;
 using Repository.Mongo;
 
 namespace Repository.Repositories;
@@ -9,22 +11,24 @@ namespace Repository.Repositories;
 public sealed class EmployeeRepository : IEmployeeRepository
 {
     private readonly MongoCollections _collections;
+    private readonly IMapper _mapper;
 
-    public EmployeeRepository(MongoCollections collections)
+    public EmployeeRepository(MongoCollections collections, IMapper mapper)
     {
         _collections = collections;
+        _mapper = mapper;
     }
 
-    public async Task<Employee?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<EmployeeModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var document = await _collections.EmployeesCollection
             .Find(employee => employee.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return document is null ? null : DocumentMapper.ToDomain(document);
+        return document is null ? null : _mapper.Map<EmployeeModel>(document);
     }
 
-    public async Task<IReadOnlyList<Employee>> GetByIdsAsync(
+    public async Task<IReadOnlyList<EmployeeModel>> GetByIdsAsync(
         IReadOnlyCollection<Guid> ids,
         CancellationToken cancellationToken)
     {
@@ -34,20 +38,20 @@ public sealed class EmployeeRepository : IEmployeeRepository
         }
 
         var documents = await _collections.EmployeesCollection
-            .Find(Builders<Documents.EmployeeDocument>.Filter.In(employee => employee.Id, ids))
+            .Find(Builders<EmployeeDocument>.Filter.In(employee => employee.Id, ids))
             .ToListAsync(cancellationToken);
 
-        return documents.Select(DocumentMapper.ToDomain).ToList();
+        return _mapper.Map<List<EmployeeModel>>(documents);
     }
 
-    public async Task<PagedResult<Employee>> QueryAsync(
+    public async Task<PagedResult<EmployeeModel>> QueryAsync(
         IReadOnlyCollection<Guid>? ids,
         string? department,
         int page,
         int pageSize,
         CancellationToken cancellationToken)
     {
-        var builder = Builders<Documents.EmployeeDocument>.Filter;
+        var builder = Builders<EmployeeDocument>.Filter;
         var filter = builder.Empty;
 
         if (ids is { Count: > 0 })
@@ -73,29 +77,23 @@ public sealed class EmployeeRepository : IEmployeeRepository
 
         await Task.WhenAll(totalTask, itemsTask);
 
-        return new PagedResult<Employee>
+        return new PagedResult<EmployeeModel>
         {
-            Items = itemsTask.Result.Select(DocumentMapper.ToDomain).ToList(),
+            Items = _mapper.Map<List<EmployeeModel>>(itemsTask.Result),
             TotalCount = totalTask.Result
         };
     }
 
     public async Task UpdateRatesAsync(
         Guid id,
-        IReadOnlyList<Rate> rates,
+        IReadOnlyList<RateModel> rates,
         CancellationToken cancellationToken)
     {
-        var rateDocuments = rates
-            .Select(rate => new Documents.RateDocument
-            {
-                From = DocumentMapper.ToUtcDate(rate.From),
-                Value = rate.Value
-            })
-            .ToList();
+        var rateDocuments = _mapper.Map<List<RateDocument>>(rates);
 
         var result = await _collections.EmployeesCollection.UpdateOneAsync(
             employee => employee.Id == id,
-            Builders<Documents.EmployeeDocument>.Update.Set(employee => employee.Rates, rateDocuments),
+            Builders<EmployeeDocument>.Update.Set(employee => employee.Rates, rateDocuments),
             cancellationToken: cancellationToken);
 
         if (result.MatchedCount == 0)

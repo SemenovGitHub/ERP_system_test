@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Domain.Interfaces;
 using Application.Models.Employees.Queries;
 using Application.Models.Employees.Responses;
 using MediatR;

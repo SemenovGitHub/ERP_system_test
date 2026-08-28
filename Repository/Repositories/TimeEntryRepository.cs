@@ -1,6 +1,7 @@
-using Application.Interfaces;
+using Domain.Interfaces;
+using AutoMapper;
 using Domain.Exceptions;
-using Domain.TimeEntries;
+using Domain.Models;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
@@ -12,19 +13,21 @@ namespace Repository.Repositories;
 public sealed class TimeEntryRepository : ITimeEntryRepository
 {
     private readonly MongoCollections _collections;
+    private readonly IMapper _mapper;
 
-    public TimeEntryRepository(MongoCollections collections)
+    public TimeEntryRepository(MongoCollections collections, IMapper mapper)
     {
         _collections = collections;
+        _mapper = mapper;
     }
 
-    public async Task<TimeEntry?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+    public async Task<TimeEntryModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         var document = await _collections.TimeEntriesCollection
             .Find(entry => entry.Id == id)
             .FirstOrDefaultAsync(cancellationToken);
 
-        return document is null ? null : DocumentMapper.ToDomain(document);
+        return document is null ? null : _mapper.Map<TimeEntryModel>(document);
     }
 
     public async Task<PagedTimeEntries> GetPagedAsync(
@@ -51,7 +54,7 @@ public sealed class TimeEntryRepository : ITimeEntryRepository
 
         return new PagedTimeEntries
         {
-            Items = items.Select(DocumentMapper.ToDomain).ToList(),
+            Items = _mapper.Map<List<TimeEntryModel>>(items),
             TotalCount = totals.Count,
             TotalHours = totals.Hours,
             TotalCost = totals.Cost
@@ -64,7 +67,7 @@ public sealed class TimeEntryRepository : ITimeEntryRepository
         Guid? excludeEntryId,
         CancellationToken cancellationToken)
     {
-        var utcDate = DocumentMapper.ToUtcDate(date);
+        var utcDate = _mapper.Map<DateTime>(date);
         var builder = Builders<TimeEntryDocument>.Filter;
         var filter = builder.Eq(entry => entry.EmployeeId, employeeId)
                      & builder.Eq(entry => entry.Date, utcDate);
@@ -99,7 +102,7 @@ public sealed class TimeEntryRepository : ITimeEntryRepository
                 Builders<TimeEntryDocument>.Filter.Eq(entry => entry.EmployeeId, key.EmployeeId)
                 & Builders<TimeEntryDocument>.Filter.Eq(
                     entry => entry.Date,
-                    DocumentMapper.ToUtcDate(key.Date)))
+                    _mapper.Map<DateTime>(key.Date)))
             .ToArray();
 
         var grouped = await _collections.TimeEntriesCollection
@@ -116,21 +119,21 @@ public sealed class TimeEntryRepository : ITimeEntryRepository
             .ToListAsync(cancellationToken);
 
         return grouped.ToDictionary(
-            row => (row.EmployeeId, DocumentMapper.ToDateOnly(row.Date)),
+            row => (row.EmployeeId, _mapper.Map<DateOnly>(row.Date)),
             row => row.Hours);
     }
 
-    public Task AddAsync(TimeEntry entry, CancellationToken cancellationToken) =>
+    public Task AddAsync(TimeEntryModel entry, CancellationToken cancellationToken) =>
         _collections.TimeEntriesCollection.InsertOneAsync(
-            DocumentMapper.ToDocument(entry),
+            _mapper.Map<TimeEntryDocument>(entry),
             cancellationToken: cancellationToken);
 
     public async Task UpdateAsync(
-        TimeEntry entry,
+        TimeEntryModel entry,
         int expectedVersion,
         CancellationToken cancellationToken)
     {
-        var document = DocumentMapper.ToDocument(entry);
+        var document = _mapper.Map<TimeEntryDocument>(entry);
         var result = await _collections.TimeEntriesCollection.ReplaceOneAsync(
             existing => existing.Id == entry.Id && existing.Version == expectedVersion,
             document,

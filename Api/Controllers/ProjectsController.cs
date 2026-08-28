@@ -1,10 +1,10 @@
+using Application.Models.Projects.Queries;
 using AutoMapper;
 using ERP.Abstractions.Models.Projects;
 using MediatR;
-using Application.Models.Projects.Queries;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.Controllers;
+namespace Api.Controllers;
 
 [ApiController]
 [Route("api/projects")]

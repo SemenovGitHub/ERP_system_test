@@ -1,10 +1,10 @@
+using Application.Models.Periods.Commands;
 using AutoMapper;
 using ERP.Abstractions.Models.Periods;
 using MediatR;
-using Application.Models.Periods.Commands;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ERP.Controllers;
+namespace Api.Controllers;
 
 [ApiController]
 [Route("api/periods")]

@@ -1,10 +1,10 @@
-using Domain.TimeEntries;
+using Domain.Models;
 
-namespace Application.Interfaces;
+namespace Domain.Interfaces;
 
 public interface ITimeEntryRepository
 {
-    Task<TimeEntry?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<TimeEntryModel?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
 
     Task<PagedTimeEntries> GetPagedAsync(
         int year,
@@ -25,9 +25,9 @@ public interface ITimeEntryRepository
         IReadOnlyCollection<(Guid EmployeeId, DateOnly Date)> keys,
         CancellationToken cancellationToken);
 
-    Task AddAsync(TimeEntry entry, CancellationToken cancellationToken);
+    Task AddAsync(TimeEntryModel entry, CancellationToken cancellationToken);
 
-    Task UpdateAsync(TimeEntry entry, int expectedVersion, CancellationToken cancellationToken);
+    Task UpdateAsync(TimeEntryModel entry, int expectedVersion, CancellationToken cancellationToken);
 
     Task DeleteAsync(Guid id, CancellationToken cancellationToken);
 }

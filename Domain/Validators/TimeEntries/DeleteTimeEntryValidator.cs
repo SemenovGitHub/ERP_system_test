@@ -1,14 +1,14 @@
-using Application.Interfaces;
-using Application.Models.TimeEntries.Commands;
 using Domain.Exceptions;
+using Domain.Interfaces;
+using Domain.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace Application.Validators.TimeEntries;
+namespace Domain.Validators.TimeEntries;
 
 public sealed class DeleteTimeEntryValidator
-    : AbstractValidator<DeleteTimeEntryCommand>,
-      IDomainValidator<DeleteTimeEntryCommand>
+    : AbstractValidator<TimeEntryModel>,
+      IDeleteTimeEntryValidator
 {
     private readonly ITimeEntryRepository _timeEntries;
     private readonly IPeriodRepository _periods;
@@ -25,8 +25,8 @@ public sealed class DeleteTimeEntryValidator
         When(x => x.Id != default, () => RuleFor(x => x).CustomAsync(ValidateBusinessAsync));
     }
 
-    async Task IDomainValidator<DeleteTimeEntryCommand>.ValidateAsync(
-        DeleteTimeEntryCommand instance,
+    async Task IDomainValidator<TimeEntryModel>.ValidateAsync(
+        TimeEntryModel instance,
         CancellationToken cancellationToken)
     {
         var result = await base.ValidateAsync(instance, cancellationToken);
@@ -34,14 +34,14 @@ public sealed class DeleteTimeEntryValidator
     }
 
     private async Task ValidateBusinessAsync(
-        DeleteTimeEntryCommand command,
-        ValidationContext<DeleteTimeEntryCommand> context,
+        TimeEntryModel entry,
+        ValidationContext<TimeEntryModel> context,
         CancellationToken cancellationToken)
     {
-        var existing = await _timeEntries.GetByIdAsync(command.Id, cancellationToken);
+        var existing = await _timeEntries.GetByIdAsync(entry.Id, cancellationToken);
         if (existing is null)
         {
-            context.AddFailure(new ValidationFailure(nameof(command.Id), "Запись табеля не найдена.")
+            context.AddFailure(new ValidationFailure(nameof(entry.Id), "Запись табеля не найдена.")
             {
                 ErrorCode = ErrorCodes.NotFound
             });
@@ -55,7 +55,7 @@ public sealed class DeleteTimeEntryValidator
         if (isClosed)
         {
             context.AddFailure(new ValidationFailure(
-                nameof(command.Id),
+                nameof(entry.Id),
                 $"Период {existing.Date.Month:00}.{existing.Date.Year} закрыт. Создавать, изменять и удалять записи нельзя.")
             {
                 ErrorCode = ErrorCodes.ClosedPeriod
