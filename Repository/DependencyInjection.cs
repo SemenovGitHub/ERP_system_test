@@ -1,4 +1,3 @@
-using Application.Interfaces;
 using Domain.Interfaces;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
@@ -21,12 +20,7 @@ public static class DependencyInjection
         services.AddAutoMapper(typeof(AutoMapperProfile));
 
         services.AddOptions<MongoSettings>()
-            .Bind(configuration.GetSection(MongoSettings.SectionName))
-            .Validate(settings => !string.IsNullOrWhiteSpace(settings.ConnectionString),
-                "Секция Mongo:ConnectionString обязательна и задаётся в appsettings или переменных окружения.")
-            .Validate(settings => !string.IsNullOrWhiteSpace(settings.DatabaseName),
-                "Секция Mongo:DatabaseName обязательна и задаётся в appsettings или переменных окружения.")
-            .ValidateOnStart();
+            .Bind(configuration.GetSection(MongoSettings.SectionName));
 
         services.AddSingleton<IMongoClient>(provider =>
         {

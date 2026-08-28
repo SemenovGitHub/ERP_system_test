@@ -1,4 +1,5 @@
-using Application.Interfaces;
+using Domain.Interfaces;
+using Domain.Models;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Repository.Mongo;
@@ -14,7 +15,7 @@ public sealed class ProjectReportRepository : IProjectReportRepository
         _collections = collections;
     }
 
-    public async Task<IReadOnlyList<ProjectReportRow>> GetByMonthAsync(
+    public async Task<IReadOnlyList<ProjectReportModel>> GetByMonthAsync(
         int year,
         int month,
         CancellationToken cancellationToken)
@@ -62,7 +63,7 @@ public sealed class ProjectReportRepository : IProjectReportRepository
             .Aggregate<BsonDocument>(pipeline, cancellationToken: cancellationToken)
             .ToListAsync(cancellationToken);
 
-        return rows.Select(row => new ProjectReportRow
+        return rows.Select(row => new ProjectReportModel
         {
             ProjectId = row["_id"].AsGuid,
             ProjectCode = row["ProjectCode"].AsString,

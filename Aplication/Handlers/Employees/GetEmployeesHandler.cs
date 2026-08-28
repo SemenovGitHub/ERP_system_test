@@ -1,6 +1,6 @@
-using Domain.Interfaces;
 using Application.Models.Employees.Queries;
-using Application.Models.Employees.Responses;
+using AutoMapper;
+using Domain.Interfaces;
 using MediatR;
 
 namespace Application.Handlers.Employees;
@@ -9,10 +9,12 @@ public sealed class GetEmployeesHandler
     : IRequestHandler<GetEmployeesQuery, PagedEmployeesResponse>
 {
     private readonly IEmployeeRepository _employees;
+    private readonly IMapper _mapper;
 
-    public GetEmployeesHandler(IEmployeeRepository employees)
+    public GetEmployeesHandler(IEmployeeRepository employees, IMapper mapper)
     {
         _employees = employees;
+        _mapper = mapper;
     }
 
     public async Task<PagedEmployeesResponse> Handle(
@@ -29,22 +31,9 @@ public sealed class GetEmployeesHandler
             pageSize,
             cancellationToken);
 
-        return new PagedEmployeesResponse
-        {
-            Items = paged.Items.Select(employee => new EmployeeResponse
-            {
-                Id = employee.Id,
-                FullName = employee.FullName,
-                Department = employee.Department,
-                Rates = employee.Rates.Select(rate => new RateResponse
-                {
-                    From = rate.From,
-                    Value = rate.Value
-                }).ToList()
-            }).ToList(),
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = paged.TotalCount
-        };
+        var response = _mapper.Map<PagedEmployeesResponse>(paged);
+        response.Page = page;
+        response.PageSize = pageSize;
+        return response;
     }
 }

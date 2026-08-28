@@ -1,6 +1,6 @@
-namespace Application.Interfaces;
+namespace Domain.Models;
 
-public sealed class ProjectReportRow
+public sealed class ProjectReportModel
 {
     public Guid ProjectId { get; init; }
 

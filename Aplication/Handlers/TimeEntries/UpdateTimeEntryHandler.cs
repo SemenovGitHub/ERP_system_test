@@ -67,7 +67,8 @@ public sealed class UpdateTimeEntryHandler
 
         await _timeEntries.UpdateAsync(updated, request.Version, cancellationToken);
 
-        return TimeEntryMapper.Map(updated, employee, project, hoursForDay + request.Hours);
+        return _mapper.Map<TimeEntryResponse>(
+            new TimeEntryMapSource(updated, employee, project, hoursForDay + request.Hours));
     }
 
     private async Task<EmployeeModel> RequireEmployee(Guid id, CancellationToken cancellationToken)
