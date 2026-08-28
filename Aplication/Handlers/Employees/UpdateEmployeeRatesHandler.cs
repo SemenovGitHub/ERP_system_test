@@ -42,16 +42,12 @@ public sealed class UpdateEmployeeRatesHandler
 
         await _employees.UpdateRatesAsync(employee.Id, rates, cancellationToken);
 
-        return new EmployeeResponse
+        return _mapper.Map<EmployeeResponse>(new EmployeeModel
         {
             Id = employee.Id,
             FullName = employee.FullName,
             Department = employee.Department,
-            Rates = rates.Select(rate => new RateResponse
-            {
-                From = rate.From,
-                Value = rate.Value
-            }).ToList()
-        };
+            Rates = rates
+        });
     }
 }

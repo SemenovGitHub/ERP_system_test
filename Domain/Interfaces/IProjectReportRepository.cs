@@ -1,8 +1,10 @@
-namespace Application.Interfaces;
+using Domain.Models;
+
+namespace Domain.Interfaces;
 
 public interface IProjectReportRepository
 {
-    Task<IReadOnlyList<ProjectReportRow>> GetByMonthAsync(
+    Task<IReadOnlyList<ProjectReportModel>> GetByMonthAsync(
         int year,
         int month,
         CancellationToken cancellationToken);

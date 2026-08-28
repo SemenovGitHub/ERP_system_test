@@ -1,5 +1,3 @@
-using Domain.Models;
-
 namespace Domain.Interfaces;
 
 public sealed class PagedResult<T>

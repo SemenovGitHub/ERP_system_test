@@ -1,6 +1,6 @@
-using Domain.Interfaces;
 using Application.Models.Projects.Queries;
-using Application.Models.Projects.Responses;
+using AutoMapper;
+using Domain.Interfaces;
 using MediatR;
 
 namespace Application.Handlers.Projects;
@@ -9,10 +9,12 @@ public sealed class GetProjectsHandler
     : IRequestHandler<GetProjectsQuery, PagedProjectsResponse>
 {
     private readonly IProjectRepository _projects;
+    private readonly IMapper _mapper;
 
-    public GetProjectsHandler(IProjectRepository projects)
+    public GetProjectsHandler(IProjectRepository projects, IMapper mapper)
     {
         _projects = projects;
+        _mapper = mapper;
     }
 
     public async Task<PagedProjectsResponse> Handle(
@@ -29,20 +31,9 @@ public sealed class GetProjectsHandler
             pageSize,
             cancellationToken);
 
-        return new PagedProjectsResponse
-        {
-            Items = paged.Items.Select(project => new ProjectResponse
-            {
-                Id = project.Id,
-                Code = project.Code,
-                Name = project.Name,
-                Budget = project.Budget,
-                StartDate = project.StartDate,
-                EndDate = project.EndDate
-            }).ToList(),
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = paged.TotalCount
-        };
+        var response = _mapper.Map<PagedProjectsResponse>(paged);
+        response.Page = page;
+        response.PageSize = pageSize;
+        return response;
     }
 }

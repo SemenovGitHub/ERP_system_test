@@ -1,8 +1,9 @@
-using Domain.Interfaces;
 using Application.Mapping;
 using Application.Models.TimeEntries.Queries;
 using Application.Models.TimeEntries.Responses;
+using AutoMapper;
 using Domain.Exceptions;
+using Domain.Interfaces;
 using MediatR;
 
 namespace Application.Handlers.TimeEntries;
@@ -13,15 +14,18 @@ public sealed class GetTimeEntriesHandler
     private readonly ITimeEntryRepository _timeEntries;
     private readonly IEmployeeRepository _employees;
     private readonly IProjectRepository _projects;
+    private readonly IMapper _mapper;
 
     public GetTimeEntriesHandler(
         ITimeEntryRepository timeEntries,
         IEmployeeRepository employees,
-        IProjectRepository projects)
+        IProjectRepository projects,
+        IMapper mapper)
     {
         _timeEntries = timeEntries;
         _employees = employees;
         _projects = projects;
+        _mapper = mapper;
     }
 
     public async Task<PagedTimeEntriesResponse> Handle(
@@ -68,18 +72,15 @@ public sealed class GetTimeEntriesHandler
                           ?? throw new BusinessException(ErrorCodes.NotFound, "Проект записи не найден.", 404);
             hoursByDay.TryGetValue((entry.EmployeeId, entry.Date), out var hoursForDay);
 
-            return TimeEntryMapper.Map(entry, employee, project, hoursForDay);
+            return _mapper.Map<TimeEntryResponse>(
+                new TimeEntryMapSource(entry, employee, project, hoursForDay));
         })
             .ToList();
 
-        return new PagedTimeEntriesResponse
-        {
-            Items = items,
-            Page = page,
-            PageSize = pageSize,
-            TotalCount = paged.TotalCount,
-            TotalHours = paged.TotalHours,
-            TotalCost = paged.TotalCost
-        };
+        var response = _mapper.Map<PagedTimeEntriesResponse>(paged);
+        response.Items = items;
+        response.Page = page;
+        response.PageSize = pageSize;
+        return response;
     }
 }
