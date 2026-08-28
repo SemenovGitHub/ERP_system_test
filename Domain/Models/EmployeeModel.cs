@@ -8,5 +8,5 @@ public sealed class EmployeeModel
 
     public string Department { get; init; } = null!;
 
-    public IReadOnlyList<RateModel> Rates { get; init; } = [];
+    public IReadOnlyList<RateModel> Rates { get; set; } = [];
 }

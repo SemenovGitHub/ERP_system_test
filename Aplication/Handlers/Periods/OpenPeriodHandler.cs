@@ -9,16 +9,16 @@ namespace Application.Handlers.Periods;
 
 public sealed class OpenPeriodHandler : IRequestHandler<OpenPeriodCommand>
 {
-    private readonly IPeriodRepository _periods;
+    private readonly IPeriodRepository _periodsRepository;
     private readonly IDomainValidator<PeriodModel> _validator;
     private readonly IMapper _mapper;
 
     public OpenPeriodHandler(
-        IPeriodRepository periods,
+        IPeriodRepository periodsRepository,
         IDomainValidator<PeriodModel> validator,
         IMapper mapper)
     {
-        _periods = periods;
+        _periodsRepository = periodsRepository;
         _validator = validator;
         _mapper = mapper;
     }
@@ -27,6 +27,6 @@ public sealed class OpenPeriodHandler : IRequestHandler<OpenPeriodCommand>
     {
         var model = _mapper.Map<PeriodModel>(request);
         await _validator.ValidateAsync(model, cancellationToken);
-        await _periods.OpenAsync(model.Year, model.Month, cancellationToken);
+        await _periodsRepository.OpenAsync(model.Year, model.Month, cancellationToken);
     }
 }

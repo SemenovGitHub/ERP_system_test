@@ -1,4 +1,3 @@
-using Application.Mapping;
 using Application.Models.TimeEntries.Commands;
 using Application.Models.TimeEntries.Responses;
 using AutoMapper;
@@ -6,6 +5,7 @@ using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Models;
 using Domain.Validators;
+using Domain.Validators.TimeEntries;
 using MediatR;
 
 namespace Application.Handlers.TimeEntries;
@@ -13,22 +13,22 @@ namespace Application.Handlers.TimeEntries;
 public sealed class CreateTimeEntryHandler
     : IRequestHandler<CreateTimeEntryCommand, TimeEntryResponse>
 {
-    private readonly IEmployeeRepository _employees;
-    private readonly IProjectRepository _projects;
-    private readonly ITimeEntryRepository _timeEntries;
+    private readonly IEmployeeRepository _employeesRepository;
+    private readonly IProjectRepository _projectsRepository;
+    private readonly ITimeEntryRepository _timeEntriesRepository;
     private readonly ICreateTimeEntryValidator _validator;
     private readonly IMapper _mapper;
 
     public CreateTimeEntryHandler(
-        IEmployeeRepository employees,
-        IProjectRepository projects,
-        ITimeEntryRepository timeEntries,
+        IEmployeeRepository employeesRepository,
+        IProjectRepository projectsRepository,
+        ITimeEntryRepository timeEntriesRepository,
         ICreateTimeEntryValidator validator,
         IMapper mapper)
     {
-        _employees = employees;
-        _projects = projects;
-        _timeEntries = timeEntries;
+        _employeesRepository = employeesRepository;
+        _projectsRepository = projectsRepository;
+        _timeEntriesRepository = timeEntriesRepository;
         _validator = validator;
         _mapper = mapper;
     }
@@ -43,40 +43,39 @@ public sealed class CreateTimeEntryHandler
         var employee = await RequireEmployee(request.EmployeeId, cancellationToken);
         var project = await RequireProject(request.ProjectId, cancellationToken);
 
-        var hoursForDay = await _timeEntries.GetHoursForDayAsync(
+        var hoursForDay = await _timeEntriesRepository.GetHoursForDayAsync(
             request.EmployeeId,
             request.Date,
             excludeEntryId: null,
             cancellationToken);
 
-        var now = DateTime.UtcNow;
-        var entry = new TimeEntryModel
-        {
-            Id = Guid.NewGuid(),
-            EmployeeId = model.EmployeeId,
-            ProjectId = model.ProjectId,
-            Date = model.Date,
-            Hours = model.Hours,
-            Comment = model.Comment,
-            Version = 1,
-            CreatedAt = now
-        };
+        model.Id = Guid.NewGuid();
+        model.Version = 1;
+        model.CreatedAt = DateTime.UtcNow;
 
-        await _timeEntries.AddAsync(entry, cancellationToken);
+        await _timeEntriesRepository.AddAsync(model, cancellationToken);
 
-        return _mapper.Map<TimeEntryResponse>(
-            new TimeEntryMapSource(entry, employee, project, hoursForDay + request.Hours));
+        var response = _mapper.Map<TimeEntryResponse>(model);
+        var rate = TimeEntryConstraints.FindRate(employee.Rates, model.Date)
+            ?? throw new InvalidOperationException("На дату записи нет ставки.");
+        response.EmployeeFullName = employee.FullName;
+        response.ProjectCode = project.Code;
+        response.ProjectName = project.Name;
+        response.Rate = rate;
+        response.Cost = MoneyValidator.Cost(model.Hours, rate);
+        response.IsOvertime = TimeEntryConstraints.IsOvertime(hoursForDay + request.Hours);
+        return response;
     }
 
     private async Task<EmployeeModel> RequireEmployee(Guid id, CancellationToken cancellationToken)
     {
-        return await _employees.GetByIdAsync(id, cancellationToken)
+        return await _employeesRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник не найден.", 404);
     }
 
     private async Task<ProjectModel> RequireProject(Guid id, CancellationToken cancellationToken)
     {
-        return await _projects.GetByIdAsync(id, cancellationToken)
+        return await _projectsRepository.GetByIdAsync(id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Проект не найден.", 404);
     }
 }

@@ -1,4 +1,3 @@
-using Application.Mapping;
 using Application.Models.Employees.Commands;
 using Application.Models.Employees.Queries;
 using Application.Models.Employees.Responses;
@@ -8,11 +7,10 @@ using Application.Models.Projects.Responses;
 using Application.Models.Reports.Responses;
 using Application.Models.TimeEntries.Commands;
 using Application.Models.TimeEntries.Responses;
-using Application.Validators;
+using Domain.Validators;
 using AutoMapper;
 using Domain.Interfaces;
 using Domain.Models;
-using Domain.Validators.TimeEntries;
 
 namespace Application;
 
@@ -38,6 +36,7 @@ public class AutoMapperProfile : Profile
             .ForMember(model => model.UpdatedAt, options => options.Ignore());
 
         CreateMap<UpdateTimeEntryCommand, TimeEntryModel>()
+            .ForMember(model => model.Version, options => options.Ignore())
             .ForMember(model => model.CreatedAt, options => options.Ignore())
             .ForMember(model => model.UpdatedAt, options => options.Ignore());
 
@@ -51,8 +50,13 @@ public class AutoMapperProfile : Profile
             .ForMember(model => model.CreatedAt, options => options.Ignore())
             .ForMember(model => model.UpdatedAt, options => options.Ignore());
 
-        CreateMap<TimeEntryMapSource, TimeEntryResponse>()
-            .ConvertUsing(source => MapTimeEntry(source));
+        CreateMap<TimeEntryModel, TimeEntryResponse>()
+            .ForMember(response => response.EmployeeFullName, options => options.Ignore())
+            .ForMember(response => response.ProjectCode, options => options.Ignore())
+            .ForMember(response => response.ProjectName, options => options.Ignore())
+            .ForMember(response => response.Rate, options => options.Ignore())
+            .ForMember(response => response.Cost, options => options.Ignore())
+            .ForMember(response => response.IsOvertime, options => options.Ignore());
 
         CreateMap<PagedTimeEntries, PagedTimeEntriesResponse>()
             .ForMember(response => response.Items, options => options.Ignore())
@@ -119,29 +123,6 @@ public class AutoMapperProfile : Profile
                     }
                 };
             });
-    }
-
-    private static TimeEntryResponse MapTimeEntry(TimeEntryMapSource source)
-    {
-        var rate = TimeEntryConstraints.FindRate(source.Employee.Rates, source.Entry.Date)
-            ?? throw new InvalidOperationException("На дату записи нет ставки.");
-
-        return new TimeEntryResponse
-        {
-            Id = source.Entry.Id,
-            EmployeeId = source.Entry.EmployeeId,
-            ProjectId = source.Entry.ProjectId,
-            Date = source.Entry.Date,
-            EmployeeFullName = source.Employee.FullName,
-            ProjectCode = source.Project.Code,
-            ProjectName = source.Project.Name,
-            Hours = source.Entry.Hours,
-            Rate = rate,
-            Cost = MoneyValidator.Cost(source.Entry.Hours, rate),
-            Comment = source.Entry.Comment,
-            IsOvertime = TimeEntryConstraints.IsOvertime(source.HoursForDay),
-            Version = source.Entry.Version
-        };
     }
 
     private static decimal BudgetUsagePercent(ProjectReportModel row) =>

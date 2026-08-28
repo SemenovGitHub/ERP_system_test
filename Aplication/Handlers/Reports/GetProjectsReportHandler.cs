@@ -9,12 +9,12 @@ namespace Application.Handlers.Reports;
 public sealed class GetProjectsReportHandler
     : IRequestHandler<GetProjectsReportQuery, ProjectReportResponse>
 {
-    private readonly IProjectReportRepository _reports;
+    private readonly IProjectReportRepository _reportsRepository;
     private readonly IMapper _mapper;
 
-    public GetProjectsReportHandler(IProjectReportRepository reports, IMapper mapper)
+    public GetProjectsReportHandler(IProjectReportRepository reportsRepository, IMapper mapper)
     {
-        _reports = reports;
+        _reportsRepository = reportsRepository;
         _mapper = mapper;
     }
 
@@ -22,7 +22,7 @@ public sealed class GetProjectsReportHandler
         GetProjectsReportQuery request,
         CancellationToken cancellationToken)
     {
-        var rows = await _reports.GetByMonthAsync(request.Year, request.Month, cancellationToken);
+        var rows = await _reportsRepository.GetByMonthAsync(request.Year, request.Month, cancellationToken);
         return _mapper.Map<ProjectReportResponse>(rows);
     }
 }

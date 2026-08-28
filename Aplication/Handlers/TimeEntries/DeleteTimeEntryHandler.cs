@@ -10,16 +10,16 @@ namespace Application.Handlers.TimeEntries;
 
 public sealed class DeleteTimeEntryHandler : IRequestHandler<DeleteTimeEntryCommand>
 {
-    private readonly ITimeEntryRepository _timeEntries;
+    private readonly ITimeEntryRepository _timeEntriesRepository;
     private readonly IDeleteTimeEntryValidator _validator;
     private readonly IMapper _mapper;
 
     public DeleteTimeEntryHandler(
-        ITimeEntryRepository timeEntries,
+        ITimeEntryRepository timeEntriesRepository,
         IDeleteTimeEntryValidator validator,
         IMapper mapper)
     {
-        _timeEntries = timeEntries;
+        _timeEntriesRepository = timeEntriesRepository;
         _validator = validator;
         _mapper = mapper;
     }
@@ -29,9 +29,9 @@ public sealed class DeleteTimeEntryHandler : IRequestHandler<DeleteTimeEntryComm
         var model = _mapper.Map<TimeEntryModel>(request);
         await _validator.ValidateAsync(model, cancellationToken);
 
-        var existing = await _timeEntries.GetByIdAsync(request.Id, cancellationToken)
+        var existing = await _timeEntriesRepository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Запись табеля не найдена.", 404);
 
-        await _timeEntries.DeleteAsync(existing.Id, cancellationToken);
+        await _timeEntriesRepository.DeleteAsync(existing.Id, cancellationToken);
     }
 }

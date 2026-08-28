@@ -1,4 +1,4 @@
-using Application.Validators;
+using Domain.Validators;
 using FluentAssertions;
 
 namespace Tests.Validators;

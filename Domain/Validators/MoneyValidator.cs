@@ -1,4 +1,4 @@
-namespace Application.Validators;
+namespace Domain.Validators;
 
 public static class MoneyValidator
 {

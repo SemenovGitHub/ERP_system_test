@@ -8,12 +8,12 @@ namespace Application.Handlers.Employees;
 public sealed class GetEmployeesHandler
     : IRequestHandler<GetEmployeesQuery, PagedEmployeesResponse>
 {
-    private readonly IEmployeeRepository _employees;
+    private readonly IEmployeeRepository _employeesRepository;
     private readonly IMapper _mapper;
 
-    public GetEmployeesHandler(IEmployeeRepository employees, IMapper mapper)
+    public GetEmployeesHandler(IEmployeeRepository employeesRepository, IMapper mapper)
     {
-        _employees = employees;
+        _employeesRepository = employeesRepository;
         _mapper = mapper;
     }
 
@@ -24,7 +24,7 @@ public sealed class GetEmployeesHandler
         var page = request.Page < 1 ? 1 : request.Page;
         var pageSize = request.PageSize is < 1 or > 100 ? 20 : request.PageSize;
 
-        var paged = await _employees.QueryAsync(
+        var paged = await _employeesRepository.QueryAsync(
             request.Ids,
             request.Department,
             page,
