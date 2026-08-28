@@ -8,7 +8,7 @@ namespace Domain.Validators.TimeEntries;
 
 public sealed class UpdateTimeEntryValidator
     : AbstractValidator<TimeEntryModel>,
-      IUpdateTimeEntryValidator
+        IUpdateTimeEntryValidator
 {
     private readonly IEmployeeRepository _employeesRepository;
     private readonly IProjectRepository _projectsRepository;
@@ -36,13 +36,14 @@ public sealed class UpdateTimeEntryValidator
             .WithMessage("Часы должны быть положительными, кратными 0,5 и не больше 24 за одну запись.");
         RuleFor(x => x.Comment).MaximumLength(500);
 
-        When(x =>
+        RuleFor(x => x)
+            .CustomAsync(ValidateBusinessAsync)
+            .When(x =>
                 x.Id != default
                 && x.EmployeeId != default
                 && x.ProjectId != default
                 && x.Date != default
-                && TimeEntryConstraints.IsValidEntryHours(x.Hours),
-            () => RuleFor(x => x).CustomAsync(ValidateBusinessAsync));
+                && TimeEntryConstraints.IsValidEntryHours(x.Hours));
     }
 
     async Task IDomainValidator<TimeEntryModel>.ValidateAsync(
