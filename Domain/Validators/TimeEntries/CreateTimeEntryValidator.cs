@@ -10,21 +10,21 @@ public sealed class CreateTimeEntryValidator
     : AbstractValidator<TimeEntryModel>,
       ICreateTimeEntryValidator
 {
-    private readonly IEmployeeRepository _employees;
-    private readonly IProjectRepository _projects;
-    private readonly IPeriodRepository _periods;
-    private readonly ITimeEntryRepository _timeEntries;
+    private readonly IEmployeeRepository _employeesRepository;
+    private readonly IProjectRepository _projectsRepository;
+    private readonly IPeriodRepository _periodsRepository;
+    private readonly ITimeEntryRepository _timeEntriesRepository;
 
     public CreateTimeEntryValidator(
-        IEmployeeRepository employees,
-        IProjectRepository projects,
-        IPeriodRepository periods,
-        ITimeEntryRepository timeEntries)
+        IEmployeeRepository employeesRepository,
+        IProjectRepository projectsRepository,
+        IPeriodRepository periodsRepository,
+        ITimeEntryRepository timeEntriesRepository)
     {
-        _employees = employees;
-        _projects = projects;
-        _periods = periods;
-        _timeEntries = timeEntries;
+        _employeesRepository = employeesRepository;
+        _projectsRepository = projectsRepository;
+        _periodsRepository = periodsRepository;
+        _timeEntriesRepository = timeEntriesRepository;
 
         RuleFor(x => x.EmployeeId).NotEmpty();
         RuleFor(x => x.ProjectId).NotEmpty();
@@ -56,7 +56,7 @@ public sealed class CreateTimeEntryValidator
         ValidationContext<TimeEntryModel> context,
         CancellationToken cancellationToken)
     {
-        var isClosed = await _periods.IsClosedAsync(
+        var isClosed = await _periodsRepository.IsClosedAsync(
             entry.Date.Year,
             entry.Date.Month,
             cancellationToken);
@@ -69,7 +69,7 @@ public sealed class CreateTimeEntryValidator
             return;
         }
 
-        var employee = await _employees.GetByIdAsync(entry.EmployeeId, cancellationToken);
+        var employee = await _employeesRepository.GetByIdAsync(entry.EmployeeId, cancellationToken);
         if (employee is null)
         {
             context.AddFailure(Failure(
@@ -79,7 +79,7 @@ public sealed class CreateTimeEntryValidator
             return;
         }
 
-        var project = await _projects.GetByIdAsync(entry.ProjectId, cancellationToken);
+        var project = await _projectsRepository.GetByIdAsync(entry.ProjectId, cancellationToken);
         if (project is null)
         {
             context.AddFailure(Failure(
@@ -116,7 +116,7 @@ public sealed class CreateTimeEntryValidator
             return;
         }
 
-        var hoursForDay = await _timeEntries.GetHoursForDayAsync(
+        var hoursForDay = await _timeEntriesRepository.GetHoursForDayAsync(
             entry.EmployeeId,
             entry.Date,
             excludeEntryId: null,

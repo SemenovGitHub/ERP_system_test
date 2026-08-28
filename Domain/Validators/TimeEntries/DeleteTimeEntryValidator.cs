@@ -10,15 +10,15 @@ public sealed class DeleteTimeEntryValidator
     : AbstractValidator<TimeEntryModel>,
       IDeleteTimeEntryValidator
 {
-    private readonly ITimeEntryRepository _timeEntries;
-    private readonly IPeriodRepository _periods;
+    private readonly ITimeEntryRepository _timeEntriesRepository;
+    private readonly IPeriodRepository _periodsRepository;
 
     public DeleteTimeEntryValidator(
-        ITimeEntryRepository timeEntries,
-        IPeriodRepository periods)
+        ITimeEntryRepository timeEntriesRepository,
+        IPeriodRepository periodsRepository)
     {
-        _timeEntries = timeEntries;
-        _periods = periods;
+        _timeEntriesRepository = timeEntriesRepository;
+        _periodsRepository = periodsRepository;
 
         RuleFor(x => x.Id).NotEmpty();
 
@@ -38,7 +38,7 @@ public sealed class DeleteTimeEntryValidator
         ValidationContext<TimeEntryModel> context,
         CancellationToken cancellationToken)
     {
-        var existing = await _timeEntries.GetByIdAsync(entry.Id, cancellationToken);
+        var existing = await _timeEntriesRepository.GetByIdAsync(entry.Id, cancellationToken);
         if (existing is null)
         {
             context.AddFailure(new ValidationFailure(nameof(entry.Id), "Запись табеля не найдена.")
@@ -48,7 +48,7 @@ public sealed class DeleteTimeEntryValidator
             return;
         }
 
-        var isClosed = await _periods.IsClosedAsync(
+        var isClosed = await _periodsRepository.IsClosedAsync(
             existing.Date.Year,
             existing.Date.Month,
             cancellationToken);

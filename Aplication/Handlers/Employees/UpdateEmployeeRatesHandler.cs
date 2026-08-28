@@ -12,16 +12,16 @@ namespace Application.Handlers.Employees;
 public sealed class UpdateEmployeeRatesHandler
     : IRequestHandler<UpdateEmployeeRatesCommand, EmployeeResponse>
 {
-    private readonly IEmployeeRepository _employees;
+    private readonly IEmployeeRepository _employeesRepository;
     private readonly IDomainValidator<EmployeeModel> _validator;
     private readonly IMapper _mapper;
 
     public UpdateEmployeeRatesHandler(
-        IEmployeeRepository employees,
+        IEmployeeRepository employeesRepository,
         IDomainValidator<EmployeeModel> validator,
         IMapper mapper)
     {
-        _employees = employees;
+        _employeesRepository = employeesRepository;
         _validator = validator;
         _mapper = mapper;
     }
@@ -33,21 +33,16 @@ public sealed class UpdateEmployeeRatesHandler
         var model = _mapper.Map<EmployeeModel>(request);
         await _validator.ValidateAsync(model, cancellationToken);
 
-        var employee = await _employees.GetByIdAsync(request.Id, cancellationToken)
+        var employee = await _employeesRepository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник не найден.", 404);
 
         var rates = model.Rates
             .OrderBy(rate => rate.From)
             .ToList();
 
-        await _employees.UpdateRatesAsync(employee.Id, rates, cancellationToken);
+        await _employeesRepository.UpdateRatesAsync(employee.Id, rates, cancellationToken);
 
-        return _mapper.Map<EmployeeResponse>(new EmployeeModel
-        {
-            Id = employee.Id,
-            FullName = employee.FullName,
-            Department = employee.Department,
-            Rates = rates
-        });
+        employee.Rates = rates;
+        return _mapper.Map<EmployeeResponse>(employee);
     }
 }

@@ -8,12 +8,12 @@ namespace Application.Handlers.Projects;
 public sealed class GetProjectsHandler
     : IRequestHandler<GetProjectsQuery, PagedProjectsResponse>
 {
-    private readonly IProjectRepository _projects;
+    private readonly IProjectRepository _projectsRepository;
     private readonly IMapper _mapper;
 
-    public GetProjectsHandler(IProjectRepository projects, IMapper mapper)
+    public GetProjectsHandler(IProjectRepository projectsRepository, IMapper mapper)
     {
-        _projects = projects;
+        _projectsRepository = projectsRepository;
         _mapper = mapper;
     }
 
@@ -24,7 +24,7 @@ public sealed class GetProjectsHandler
         var page = request.Page < 1 ? 1 : request.Page;
         var pageSize = request.PageSize is < 1 or > 100 ? 20 : request.PageSize;
 
-        var paged = await _projects.QueryAsync(
+        var paged = await _projectsRepository.QueryAsync(
             request.Ids,
             request.Code,
             page,
