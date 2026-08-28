@@ -1,8 +1,7 @@
-using Application.Interfaces;
-using Application.Models.TimeEntries.Commands;
-using Application.Validators;
 using Domain.Exceptions;
+using Domain.Interfaces;
 using Domain.Models;
+using Domain.Validators;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -17,7 +16,7 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
     [Fact]
     public async Task Create_WhenDateIsInsidePeriod_DoesNotThrow()
     {
-        var act = () => Validator().ValidateAsync(Command(new DateOnly(2026, 6, 1)));
+        var act = () => Validator().ValidateAsync(Entry(new DateOnly(2026, 6, 1)));
 
         await act.Should().NotThrowAsync();
     }
@@ -28,8 +27,8 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
         var project = TestData.Project(_projectId);
         var validator = Validator(project);
 
-        await validator.Invoking(v => v.ValidateAsync(Command(project.StartDate))).Should().NotThrowAsync();
-        await validator.Invoking(v => v.ValidateAsync(Command(project.EndDate!.Value))).Should().NotThrowAsync();
+        await validator.Invoking(v => v.ValidateAsync(Entry(project.StartDate))).Should().NotThrowAsync();
+        await validator.Invoking(v => v.ValidateAsync(Entry(project.EndDate!.Value))).Should().NotThrowAsync();
     }
 
     [Fact]
@@ -38,7 +37,7 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
         var project = TestData.Project(_projectId);
         var date = project.StartDate.AddDays(-1);
 
-        var act = () => Validator(project).ValidateAsync(Command(date));
+        var act = () => Validator(project).ValidateAsync(Entry(date));
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.ProjectDateOutOfRange);
@@ -52,7 +51,7 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
         var project = TestData.Project(_projectId);
         var date = project.EndDate!.Value.AddDays(1);
 
-        var act = () => Validator(project).ValidateAsync(Command(date));
+        var act = () => Validator(project).ValidateAsync(Entry(date));
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.ProjectDateOutOfRange);
@@ -73,12 +72,12 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
             EndDate = null
         };
 
-        var act = () => Validator(project).ValidateAsync(Command(new DateOnly(2030, 1, 1)));
+        var act = () => Validator(project).ValidateAsync(Entry(new DateOnly(2030, 1, 1)));
 
         await act.Should().NotThrowAsync();
     }
 
-    private IDomainValidator<CreateTimeEntryCommand> Validator(ProjectModel? project = null)
+    private ICreateTimeEntryValidator Validator(ProjectModel? project = null)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
@@ -92,12 +91,12 @@ public sealed class CreateTimeEntryProjectPeriodValidatorTests
             .Setup(repository => repository.GetByIdAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(project ?? TestData.Project(_projectId));
 
-        return TestContainer.Resolve<CreateTimeEntryCommand>(
+        return TestContainer.Resolve<ICreateTimeEntryValidator>(
             employeeRepositoryMock: employeeRepositoryMock,
             projectRepositoryMock: projectRepositoryMock);
     }
 
-    private CreateTimeEntryCommand Command(DateOnly date) =>
+    private TimeEntryModel Entry(DateOnly date) =>
         new()
         {
             EmployeeId = _employeeId,

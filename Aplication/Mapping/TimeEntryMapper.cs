@@ -1,7 +1,7 @@
 using Application.Models.TimeEntries.Responses;
 using Application.Validators;
-using Application.Validators.TimeEntries;
 using Domain.Models;
+using Domain.Validators.TimeEntries;
 
 namespace Application.Mapping;
 

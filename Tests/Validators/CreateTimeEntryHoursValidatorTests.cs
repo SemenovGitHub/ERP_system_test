@@ -1,8 +1,7 @@
-using Application.Interfaces;
-using Application.Models.TimeEntries.Commands;
-using Application.Validators;
-using Domain.Models;
 using Domain.Exceptions;
+using Domain.Interfaces;
+using Domain.Models;
+using Domain.Validators;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -19,7 +18,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
     {
         var validator = Validator(hoursAlready: 16);
 
-        var act = () => validator.ValidateAsync(Command(8));
+        var act = () => validator.ValidateAsync(Entry(8));
 
         await act.Should().NotThrowAsync();
     }
@@ -29,7 +28,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
     {
         var validator = Validator(hoursAlready: 16);
 
-        var act = () => validator.ValidateAsync(Command(10));
+        var act = () => validator.ValidateAsync(Entry(10));
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.DailyHoursLimit);
@@ -37,7 +36,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
             "Суммарно у сотрудника за день не может быть больше 24 часов. Уже учтено 16, попытка добавить 10 (итого 26).");
     }
 
-    private IDomainValidator<CreateTimeEntryCommand> Validator(decimal hoursAlready)
+    private ICreateTimeEntryValidator Validator(decimal hoursAlready)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
@@ -60,13 +59,13 @@ public sealed class CreateTimeEntryHoursValidatorTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(hoursAlready);
 
-        return TestContainer.Resolve<CreateTimeEntryCommand>(
+        return TestContainer.Resolve<ICreateTimeEntryValidator>(
             employeeRepositoryMock: employeeRepositoryMock,
             projectRepositoryMock: projectRepositoryMock,
             timeEntryRepositoryMock: timeEntryRepositoryMock);
     }
 
-    private CreateTimeEntryCommand Command(decimal hours) =>
+    private TimeEntryModel Entry(decimal hours) =>
         new()
         {
             EmployeeId = _employeeId,

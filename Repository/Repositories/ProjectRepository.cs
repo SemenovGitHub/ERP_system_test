@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Domain.Interfaces;
 using AutoMapper;
 using Domain.Models;
 using MongoDB.Driver;

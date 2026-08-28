@@ -1,10 +1,11 @@
-using Application.Interfaces;
 using Application.Mapping;
 using Application.Models.TimeEntries.Commands;
 using Application.Models.TimeEntries.Responses;
-using Application.Validators;
+using AutoMapper;
 using Domain.Exceptions;
+using Domain.Interfaces;
 using Domain.Models;
+using Domain.Validators;
 using MediatR;
 
 namespace Application.Handlers.TimeEntries;
@@ -15,25 +16,29 @@ public sealed class UpdateTimeEntryHandler
     private readonly IEmployeeRepository _employees;
     private readonly IProjectRepository _projects;
     private readonly ITimeEntryRepository _timeEntries;
-    private readonly IDomainValidator<UpdateTimeEntryCommand> _validator;
+    private readonly IUpdateTimeEntryValidator _validator;
+    private readonly IMapper _mapper;
 
     public UpdateTimeEntryHandler(
         IEmployeeRepository employees,
         IProjectRepository projects,
         ITimeEntryRepository timeEntries,
-        IDomainValidator<UpdateTimeEntryCommand> validator)
+        IUpdateTimeEntryValidator validator,
+        IMapper mapper)
     {
         _employees = employees;
         _projects = projects;
         _timeEntries = timeEntries;
         _validator = validator;
+        _mapper = mapper;
     }
 
     public async Task<TimeEntryResponse> Handle(
         UpdateTimeEntryCommand request,
         CancellationToken cancellationToken)
     {
-        await _validator.ValidateAsync(request, cancellationToken);
+        var model = _mapper.Map<TimeEntryModel>(request);
+        await _validator.ValidateAsync(model, cancellationToken);
 
         var existing = await _timeEntries.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Запись табеля не найдена.", 404);
@@ -50,11 +55,11 @@ public sealed class UpdateTimeEntryHandler
         var updated = new TimeEntryModel
         {
             Id = existing.Id,
-            EmployeeId = request.EmployeeId,
-            ProjectId = request.ProjectId,
-            Date = request.Date,
-            Hours = request.Hours,
-            Comment = request.Comment,
+            EmployeeId = model.EmployeeId,
+            ProjectId = model.ProjectId,
+            Date = model.Date,
+            Hours = model.Hours,
+            Comment = model.Comment,
             Version = existing.Version + 1,
             CreatedAt = existing.CreatedAt,
             UpdatedAt = DateTime.UtcNow

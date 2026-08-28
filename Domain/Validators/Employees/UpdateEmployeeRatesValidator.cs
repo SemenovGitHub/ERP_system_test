@@ -1,12 +1,12 @@
-using Application.Models.Employees.Commands;
+using Domain.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace Application.Validators.Employees;
+namespace Domain.Validators.Employees;
 
 public sealed class UpdateEmployeeRatesValidator
-    : AbstractValidator<UpdateEmployeeRatesCommand>,
-      IDomainValidator<UpdateEmployeeRatesCommand>
+    : AbstractValidator<EmployeeModel>,
+      IDomainValidator<EmployeeModel>
 {
     public UpdateEmployeeRatesValidator()
     {
@@ -23,8 +23,8 @@ public sealed class UpdateEmployeeRatesValidator
         });
     }
 
-    async Task IDomainValidator<UpdateEmployeeRatesCommand>.ValidateAsync(
-        UpdateEmployeeRatesCommand instance,
+    async Task IDomainValidator<EmployeeModel>.ValidateAsync(
+        EmployeeModel instance,
         CancellationToken cancellationToken)
     {
         var result = await base.ValidateAsync(instance, cancellationToken);

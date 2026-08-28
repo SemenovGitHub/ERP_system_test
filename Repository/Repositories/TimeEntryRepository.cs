@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Domain.Interfaces;
 using AutoMapper;
 using Domain.Exceptions;
 using Domain.Models;
