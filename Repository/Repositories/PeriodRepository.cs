@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Domain.Interfaces;
 using MongoDB.Driver;
 using Repository.Documents;
 using Repository.Mongo;

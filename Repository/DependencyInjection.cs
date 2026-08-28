@@ -1,4 +1,5 @@
 using Application.Interfaces;
+using Domain.Interfaces;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

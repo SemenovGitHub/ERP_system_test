@@ -1,8 +1,7 @@
-using Application.Interfaces;
-using Application.Models.TimeEntries.Commands;
-using Application.Validators;
-using Domain.Models;
 using Domain.Exceptions;
+using Domain.Interfaces;
+using Domain.Models;
+using Domain.Validators;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -24,7 +23,7 @@ public sealed class CreateTimeEntryCommandValidatorTests
             new RateModel { From = new DateOnly(2026, 6, 1), Value = 900 }
         ]);
 
-        var act = () => validator.ValidateAsync(Command(new DateOnly(2026, 4, 15)));
+        var act = () => validator.ValidateAsync(Entry(new DateOnly(2026, 4, 15)));
 
         await act.Should().NotThrowAsync();
     }
@@ -38,7 +37,7 @@ public sealed class CreateTimeEntryCommandValidatorTests
             new RateModel { From = new DateOnly(2026, 3, 1), Value = 700 }
         ]);
 
-        var act = () => validator.ValidateAsync(Command(new DateOnly(2026, 3, 1)));
+        var act = () => validator.ValidateAsync(Entry(new DateOnly(2026, 3, 1)));
 
         await act.Should().NotThrowAsync();
     }
@@ -51,14 +50,14 @@ public sealed class CreateTimeEntryCommandValidatorTests
             new RateModel { From = new DateOnly(2026, 3, 1), Value = 700 }
         ]);
 
-        var act = () => validator.ValidateAsync(Command(new DateOnly(2026, 2, 28)));
+        var act = () => validator.ValidateAsync(Entry(new DateOnly(2026, 2, 28)));
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.NoRate);
         exception.Message.Should().Be("На дату записи у сотрудника нет ни одной ставки. Запись создать нельзя.");
     }
 
-    private IDomainValidator<CreateTimeEntryCommand> CreateValidator(RateModel[] rates)
+    private ICreateTimeEntryValidator CreateValidator(RateModel[] rates)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
@@ -70,12 +69,12 @@ public sealed class CreateTimeEntryCommandValidatorTests
             .Setup(repository => repository.GetByIdAsync(_projectId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(TestData.Project(_projectId));
 
-        return TestContainer.Resolve<CreateTimeEntryCommand>(
+        return TestContainer.Resolve<ICreateTimeEntryValidator>(
             employeeRepositoryMock: employeeRepositoryMock,
             projectRepositoryMock: projectRepositoryMock);
     }
 
-    private CreateTimeEntryCommand Command(DateOnly date) =>
+    private TimeEntryModel Entry(DateOnly date) =>
         new()
         {
             EmployeeId = _employeeId,

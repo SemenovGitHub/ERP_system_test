@@ -1,11 +1,9 @@
-using Application.Handlers.TimeEntries;
-using Application.Models.Employees.Commands;
-using Application.Models.Periods.Commands;
-using Application.Models.TimeEntries.Commands;
-using Application.Validators;
-using Application.Validators.Employees;
-using Application.Validators.Periods;
-using Application.Validators.TimeEntries;
+using AutoMapper;
+using Domain.Models;
+using Domain.Validators;
+using Domain.Validators.Employees;
+using Domain.Validators.Periods;
+using Domain.Validators.TimeEntries;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -16,15 +14,16 @@ public static class DependencyInjection
     {
         services.AddMediatR(configuration =>
         {
-            configuration.RegisterServicesFromAssembly(typeof(CreateTimeEntryHandler).Assembly);
+            configuration.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly);
         });
 
-        services.AddTransient<IDomainValidator<CreateTimeEntryCommand>, CreateTimeEntryValidator>();
-        services.AddTransient<IDomainValidator<UpdateTimeEntryCommand>, UpdateTimeEntryValidator>();
-        services.AddTransient<IDomainValidator<DeleteTimeEntryCommand>, DeleteTimeEntryValidator>();
-        services.AddTransient<IDomainValidator<UpdateEmployeeRatesCommand>, UpdateEmployeeRatesValidator>();
-        services.AddTransient<IDomainValidator<ClosePeriodCommand>, ClosePeriodValidator>();
-        services.AddTransient<IDomainValidator<OpenPeriodCommand>, OpenPeriodValidator>();
+        services.AddAutoMapper(typeof(AutoMapperProfile));
+
+        services.AddTransient<ICreateTimeEntryValidator, CreateTimeEntryValidator>();
+        services.AddTransient<IUpdateTimeEntryValidator, UpdateTimeEntryValidator>();
+        services.AddTransient<IDeleteTimeEntryValidator, DeleteTimeEntryValidator>();
+        services.AddTransient<IDomainValidator<EmployeeModel>, UpdateEmployeeRatesValidator>();
+        services.AddTransient<IDomainValidator<PeriodModel>, PeriodValidator>();
 
         return services;
     }

@@ -1,21 +1,21 @@
-using Application.Models.Periods.Commands;
+using Domain.Models;
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace Application.Validators.Periods;
+namespace Domain.Validators.Periods;
 
-public sealed class ClosePeriodValidator
-    : AbstractValidator<ClosePeriodCommand>,
-      IDomainValidator<ClosePeriodCommand>
+public sealed class PeriodValidator
+    : AbstractValidator<PeriodModel>,
+      IDomainValidator<PeriodModel>
 {
-    public ClosePeriodValidator()
+    public PeriodValidator()
     {
         RuleFor(x => x.Year).InclusiveBetween(2000, 2100);
         RuleFor(x => x.Month).InclusiveBetween(1, 12);
     }
 
-    async Task IDomainValidator<ClosePeriodCommand>.ValidateAsync(
-        ClosePeriodCommand instance,
+    async Task IDomainValidator<PeriodModel>.ValidateAsync(
+        PeriodModel instance,
         CancellationToken cancellationToken)
     {
         var result = await base.ValidateAsync(instance, cancellationToken);

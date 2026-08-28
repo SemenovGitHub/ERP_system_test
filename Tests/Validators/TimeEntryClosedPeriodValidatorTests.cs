@@ -1,8 +1,7 @@
-using Application.Interfaces;
-using Application.Models.TimeEntries.Commands;
-using Application.Validators;
 using Domain.Exceptions;
+using Domain.Interfaces;
 using Domain.Models;
+using Domain.Validators;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -20,7 +19,7 @@ public sealed class TimeEntryClosedPeriodValidatorTests
     {
         var validator = CreateValidator(closed: false);
 
-        var act = () => validator.ValidateAsync(CreateCommand());
+        var act = () => validator.ValidateAsync(CreateEntry());
 
         await act.Should().NotThrowAsync();
     }
@@ -30,7 +29,7 @@ public sealed class TimeEntryClosedPeriodValidatorTests
     {
         var validator = CreateValidator(closed: true);
 
-        var act = () => validator.ValidateAsync(CreateCommand());
+        var act = () => validator.ValidateAsync(CreateEntry());
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.ClosedPeriod);
@@ -58,18 +57,18 @@ public sealed class TimeEntryClosedPeriodValidatorTests
             .Setup(repository => repository.IsClosedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var validator = TestContainer.Resolve<DeleteTimeEntryCommand>(
+        var validator = TestContainer.Resolve<IDeleteTimeEntryValidator>(
             timeEntryRepositoryMock: timeEntryRepositoryMock,
             periodRepositoryMock: periodRepositoryMock);
 
-        var act = () => validator.ValidateAsync(new DeleteTimeEntryCommand { Id = _entryId });
+        var act = () => validator.ValidateAsync(new TimeEntryModel { Id = _entryId });
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.ClosedPeriod);
         exception.StatusCode.Should().Be(409);
     }
 
-    private IDomainValidator<CreateTimeEntryCommand> CreateValidator(bool closed)
+    private ICreateTimeEntryValidator CreateValidator(bool closed)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
@@ -88,13 +87,13 @@ public sealed class TimeEntryClosedPeriodValidatorTests
             .Setup(repository => repository.IsClosedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(closed);
 
-        return TestContainer.Resolve<CreateTimeEntryCommand>(
+        return TestContainer.Resolve<ICreateTimeEntryValidator>(
             employeeRepositoryMock: employeeRepositoryMock,
             projectRepositoryMock: projectRepositoryMock,
             periodRepositoryMock: periodRepositoryMock);
     }
 
-    private CreateTimeEntryCommand CreateCommand() =>
+    private TimeEntryModel CreateEntry() =>
         new()
         {
             EmployeeId = _employeeId,

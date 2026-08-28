@@ -1,6 +1,5 @@
 using Api.Middleware;
 using Application;
-using Microsoft.AspNetCore.Mvc;
 using Repository;
 using Repository.Mongo;
 
@@ -14,40 +13,37 @@ public class Program
 
         builder.Services.AddApplication();
         builder.Services.AddMongoRepositories(builder.Configuration);
-        builder.Services.AddAutoMapper(typeof(Api.AutoMapperProfile), typeof(Repository.AutoMapperProfile));
+        builder.Services.AddAutoMapper(
+            typeof(Api.AutoMapperProfile),
+            typeof(Application.AutoMapperProfile),
+            typeof(Repository.AutoMapperProfile));
         builder.Services.AddControllers()
             .ConfigureApiBehaviorOptions(options =>
             {
-                options.InvalidModelStateResponseFactory = context =>
-                {
-                    var errors = context.ModelState
-                        .Where(entry => entry.Value is { Errors.Count: > 0 })
-                        .ToDictionary(
-                            entry => entry.Key,
-                            entry => entry.Value!.Errors
-                                .Select(error => HumanizeModelError(error.ErrorMessage))
-                                .Distinct()
-                                .ToArray());
-
-                    var message = errors.SelectMany(pair => pair.Value).FirstOrDefault()
-                        ?? "Ошибка валидации запроса.";
-
-                    return new BadRequestObjectResult(
-                        new ErrorResponse("VALIDATION_ERROR", message, errors));
-                };
+                options.InvalidModelStateResponseFactory = InvalidModelStateFactory.Create;
             });
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
 
-        // Настройка CORS для фронтенда
+        var cors = builder.Configuration
+            .GetSection(CorsSettings.SectionName)
+            .Get<CorsSettings>()
+            ?? new CorsSettings();
+
+        if (cors.AllowedOrigins is not { Length: > 0 })
+        {
+            throw new InvalidOperationException(
+                "Секция Cors:AllowedOrigins обязательна и задаётся в appsettings.");
+        }
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
-                policy.WithOrigins("http://localhost:3000")
-                      .AllowAnyMethod()
-                      .AllowAnyHeader()
-                      .AllowCredentials();
+                policy.WithOrigins(cors.AllowedOrigins)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials();
             });
         });
 
@@ -57,8 +53,6 @@ public class Program
         await indexes.EnsureIndexesAsync(CancellationToken.None);
 
         app.UseMiddleware<GlobalExceptionMiddleware>();
-
-        // Включаем CORS
         app.UseCors("AllowFrontend");
 
         if (app.Environment.IsDevelopment())
@@ -78,26 +72,5 @@ public class Program
         app.UseAuthorization();
         app.MapControllers();
         await app.RunAsync();
-    }
-
-    private static string HumanizeModelError(string? errorMessage)
-    {
-        if (string.IsNullOrWhiteSpace(errorMessage))
-        {
-            return "Некорректное значение.";
-        }
-
-        if (errorMessage.Contains("DateOnly", StringComparison.OrdinalIgnoreCase)
-            || errorMessage.Contains("date", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Некорректная дата.";
-        }
-
-        if (errorMessage.Contains("Guid", StringComparison.OrdinalIgnoreCase))
-        {
-            return "Не выбран сотрудник или проект.";
-        }
-
-        return errorMessage;
     }
 }

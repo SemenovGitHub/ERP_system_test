@@ -1,8 +1,8 @@
 using Domain.Models;
 
-namespace Application.Validators.TimeEntries;
+namespace Domain.Validators.TimeEntries;
 
-internal static class TimeEntryConstraints
+public static class TimeEntryConstraints
 {
     public const decimal MaxHoursPerDay = 24m;
     public const decimal OvertimeThreshold = 12m;

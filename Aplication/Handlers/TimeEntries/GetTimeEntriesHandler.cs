@@ -1,4 +1,4 @@
-using Application.Interfaces;
+using Domain.Interfaces;
 using Application.Mapping;
 using Application.Models.TimeEntries.Queries;
 using Application.Models.TimeEntries.Responses;
