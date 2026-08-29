@@ -2,6 +2,7 @@ using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Models;
 using Domain.Validators;
+using Domain.Validators.TimeEntries;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -19,7 +20,7 @@ public sealed class TimeEntryClosedPeriodValidatorTests
     {
         var validator = CreateValidator(closed: false);
 
-        var act = () => validator.ValidateAsync(CreateEntry());
+        var act = () => validator.ValidateAsync(CreateEntry()).ThrowIfInvalidAsync();
 
         await act.Should().NotThrowAsync();
     }
@@ -29,7 +30,7 @@ public sealed class TimeEntryClosedPeriodValidatorTests
     {
         var validator = CreateValidator(closed: true);
 
-        var act = () => validator.ValidateAsync(CreateEntry());
+        var act = () => validator.ValidateAsync(CreateEntry()).ThrowIfInvalidAsync();
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.ClosedPeriod);
@@ -57,18 +58,18 @@ public sealed class TimeEntryClosedPeriodValidatorTests
             .Setup(repository => repository.IsClosedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
-        var validator = TestContainer.Resolve<IDeleteTimeEntryValidator>(
+        var validator = TestContainer.Resolve<DeleteTimeEntryValidator>(
             timeEntryRepositoryMock: timeEntryRepositoryMock,
             periodRepositoryMock: periodRepositoryMock);
 
-        var act = () => validator.ValidateAsync(new TimeEntryModel { Id = _entryId });
+        var act = () => validator.ValidateAsync(new TimeEntryModel { Id = _entryId }).ThrowIfInvalidAsync();
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.ClosedPeriod);
         exception.StatusCode.Should().Be(409);
     }
 
-    private ICreateTimeEntryValidator CreateValidator(bool closed)
+    private CreateTimeEntryValidator CreateValidator(bool closed)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
@@ -87,7 +88,7 @@ public sealed class TimeEntryClosedPeriodValidatorTests
             .Setup(repository => repository.IsClosedAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(closed);
 
-        return TestContainer.Resolve<ICreateTimeEntryValidator>(
+        return TestContainer.Resolve<CreateTimeEntryValidator>(
             employeeRepositoryMock: employeeRepositoryMock,
             projectRepositoryMock: projectRepositoryMock,
             periodRepositoryMock: periodRepositoryMock);

@@ -3,6 +3,7 @@ using AutoMapper;
 using Domain.Interfaces;
 using Domain.Models;
 using Domain.Validators;
+using FluentValidation;
 using MediatR;
 
 namespace Application.Handlers.Periods;
@@ -10,12 +11,12 @@ namespace Application.Handlers.Periods;
 public sealed class ClosePeriodHandler : IRequestHandler<ClosePeriodCommand>
 {
     private readonly IPeriodRepository _periodsRepository;
-    private readonly IDomainValidator<PeriodModel> _validator;
+    private readonly IValidator<PeriodModel> _validator;
     private readonly IMapper _mapper;
 
     public ClosePeriodHandler(
         IPeriodRepository periodsRepository,
-        IDomainValidator<PeriodModel> validator,
+        IValidator<PeriodModel> validator,
         IMapper mapper)
     {
         _periodsRepository = periodsRepository;
@@ -26,7 +27,7 @@ public sealed class ClosePeriodHandler : IRequestHandler<ClosePeriodCommand>
     public async Task Handle(ClosePeriodCommand request, CancellationToken cancellationToken)
     {
         var model = _mapper.Map<PeriodModel>(request);
-        await _validator.ValidateAsync(model, cancellationToken);
+        await _validator.ValidateAsync(model, cancellationToken).ThrowIfInvalidAsync();
         await _periodsRepository.CloseAsync(model.Year, model.Month, cancellationToken);
     }
 }

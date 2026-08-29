@@ -1,6 +1,5 @@
 using Autofac;
 using Domain.Interfaces;
-using Domain.Validators;
 using Domain.Validators.TimeEntries;
 using Moq;
 
@@ -20,9 +19,9 @@ internal static class TestContainer
         builder.RegisterInstance((projectRepositoryMock ?? new Mock<IProjectRepository>()).Object).As<IProjectRepository>();
         builder.RegisterInstance((periodRepositoryMock ?? new Mock<IPeriodRepository>()).Object).As<IPeriodRepository>();
         builder.RegisterInstance((timeEntryRepositoryMock ?? new Mock<ITimeEntryRepository>()).Object).As<ITimeEntryRepository>();
-        builder.RegisterType<CreateTimeEntryValidator>().As<ICreateTimeEntryValidator>();
-        builder.RegisterType<UpdateTimeEntryValidator>().As<IUpdateTimeEntryValidator>();
-        builder.RegisterType<DeleteTimeEntryValidator>().As<IDeleteTimeEntryValidator>();
+        builder.RegisterType<CreateTimeEntryValidator>().As<ITimeEntryValidator>().AsSelf();
+        builder.RegisterType<UpdateTimeEntryValidator>().As<ITimeEntryValidator>().AsSelf();
+        builder.RegisterType<DeleteTimeEntryValidator>().As<ITimeEntryValidator>().AsSelf();
         return builder.Build().Resolve<TValidator>();
     }
 }

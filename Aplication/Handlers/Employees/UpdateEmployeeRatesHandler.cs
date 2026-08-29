@@ -5,6 +5,7 @@ using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Models;
 using Domain.Validators;
+using FluentValidation;
 using MediatR;
 
 namespace Application.Handlers.Employees;
@@ -13,12 +14,12 @@ public sealed class UpdateEmployeeRatesHandler
     : IRequestHandler<UpdateEmployeeRatesCommand, EmployeeResponse>
 {
     private readonly IEmployeeRepository _employeesRepository;
-    private readonly IDomainValidator<EmployeeModel> _validator;
+    private readonly IValidator<EmployeeModel> _validator;
     private readonly IMapper _mapper;
 
     public UpdateEmployeeRatesHandler(
         IEmployeeRepository employeesRepository,
-        IDomainValidator<EmployeeModel> validator,
+        IValidator<EmployeeModel> validator,
         IMapper mapper)
     {
         _employeesRepository = employeesRepository;
@@ -31,7 +32,7 @@ public sealed class UpdateEmployeeRatesHandler
         CancellationToken cancellationToken)
     {
         var model = _mapper.Map<EmployeeModel>(request);
-        await _validator.ValidateAsync(model, cancellationToken);
+        await _validator.ValidateAsync(model, cancellationToken).ThrowIfInvalidAsync();
 
         var employee = await _employeesRepository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Сотрудник не найден.", 404);
