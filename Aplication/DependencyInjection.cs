@@ -1,9 +1,8 @@
-using AutoMapper;
 using Domain.Models;
-using Domain.Validators;
 using Domain.Validators.Employees;
 using Domain.Validators.Periods;
 using Domain.Validators.TimeEntries;
+using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application;
@@ -19,11 +18,11 @@ public static class DependencyInjection
 
         services.AddAutoMapper(typeof(AutoMapperProfile));
 
-        services.AddTransient<ICreateTimeEntryValidator, CreateTimeEntryValidator>();
-        services.AddTransient<IUpdateTimeEntryValidator, UpdateTimeEntryValidator>();
-        services.AddTransient<IDeleteTimeEntryValidator, DeleteTimeEntryValidator>();
-        services.AddTransient<IDomainValidator<EmployeeModel>, UpdateEmployeeRatesValidator>();
-        services.AddTransient<IDomainValidator<PeriodModel>, PeriodValidator>();
+        services.AddTransient<ITimeEntryValidator, CreateTimeEntryValidator>();
+        services.AddTransient<ITimeEntryValidator, UpdateTimeEntryValidator>();
+        services.AddTransient<ITimeEntryValidator, DeleteTimeEntryValidator>();
+        services.AddTransient<IValidator<EmployeeModel>, UpdateEmployeeRatesValidator>();
+        services.AddTransient<IValidator<PeriodModel>, PeriodValidator>();
 
         return services;
     }

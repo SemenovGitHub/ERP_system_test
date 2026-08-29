@@ -16,20 +16,21 @@ public sealed class CreateTimeEntryHandler
     private readonly IEmployeeRepository _employeesRepository;
     private readonly IProjectRepository _projectsRepository;
     private readonly ITimeEntryRepository _timeEntriesRepository;
-    private readonly ICreateTimeEntryValidator _validator;
+    private readonly ITimeEntryValidator _validator;
     private readonly IMapper _mapper;
 
     public CreateTimeEntryHandler(
         IEmployeeRepository employeesRepository,
         IProjectRepository projectsRepository,
         ITimeEntryRepository timeEntriesRepository,
-        ICreateTimeEntryValidator validator,
+        IEnumerable<ITimeEntryValidator> validators,
         IMapper mapper)
     {
         _employeesRepository = employeesRepository;
         _projectsRepository = projectsRepository;
         _timeEntriesRepository = timeEntriesRepository;
-        _validator = validator;
+        _validator = validators
+            .Single(validator => validator.Name == CreateTimeEntryValidator.Name);
         _mapper = mapper;
     }
 
@@ -38,7 +39,7 @@ public sealed class CreateTimeEntryHandler
         CancellationToken cancellationToken)
     {
         var model = _mapper.Map<TimeEntryModel>(request);
-        await _validator.ValidateAsync(model, cancellationToken);
+        await _validator.ValidateAsync(model, cancellationToken).ThrowIfInvalidAsync();
 
         var employee = await RequireEmployee(request.EmployeeId, cancellationToken);
         var project = await RequireProject(request.ProjectId, cancellationToken);

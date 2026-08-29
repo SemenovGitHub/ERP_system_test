@@ -2,6 +2,7 @@ using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.Models;
 using Domain.Validators;
+using Domain.Validators.TimeEntries;
 using ERP.Tests;
 using FluentAssertions;
 using Moq;
@@ -18,7 +19,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
     {
         var validator = Validator(hoursAlready: 16);
 
-        var act = () => validator.ValidateAsync(Entry(8));
+        var act = () => validator.ValidateAsync(Entry(8)).ThrowIfInvalidAsync();
 
         await act.Should().NotThrowAsync();
     }
@@ -28,7 +29,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
     {
         var validator = Validator(hoursAlready: 16);
 
-        var act = () => validator.ValidateAsync(Entry(10));
+        var act = () => validator.ValidateAsync(Entry(10)).ThrowIfInvalidAsync();
 
         var exception = (await act.Should().ThrowAsync<BusinessException>()).Which;
         exception.Code.Should().Be(ErrorCodes.DailyHoursLimit);
@@ -36,7 +37,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
             "Суммарно у сотрудника за день не может быть больше 24 часов. Уже учтено 16, попытка добавить 10 (итого 26).");
     }
 
-    private ICreateTimeEntryValidator Validator(decimal hoursAlready)
+    private CreateTimeEntryValidator Validator(decimal hoursAlready)
     {
         var employeeRepositoryMock = new Mock<IEmployeeRepository>();
         employeeRepositoryMock
@@ -59,7 +60,7 @@ public sealed class CreateTimeEntryHoursValidatorTests
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(hoursAlready);
 
-        return TestContainer.Resolve<ICreateTimeEntryValidator>(
+        return TestContainer.Resolve<CreateTimeEntryValidator>(
             employeeRepositoryMock: employeeRepositoryMock,
             projectRepositoryMock: projectRepositoryMock,
             timeEntryRepositoryMock: timeEntryRepositoryMock);

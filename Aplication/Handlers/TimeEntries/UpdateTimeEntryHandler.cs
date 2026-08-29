@@ -16,20 +16,21 @@ public sealed class UpdateTimeEntryHandler
     private readonly IEmployeeRepository _employeesRepository;
     private readonly IProjectRepository _projectsRepository;
     private readonly ITimeEntryRepository _timeEntriesRepository;
-    private readonly IUpdateTimeEntryValidator _validator;
+    private readonly ITimeEntryValidator _validator;
     private readonly IMapper _mapper;
 
     public UpdateTimeEntryHandler(
         IEmployeeRepository employeesRepository,
         IProjectRepository projectsRepository,
         ITimeEntryRepository timeEntriesRepository,
-        IUpdateTimeEntryValidator validator,
+        IEnumerable<ITimeEntryValidator> validators,
         IMapper mapper)
     {
         _employeesRepository = employeesRepository;
         _projectsRepository = projectsRepository;
         _timeEntriesRepository = timeEntriesRepository;
-        _validator = validator;
+        _validator = validators
+            .Single(validator => validator.Name == UpdateTimeEntryValidator.Name);
         _mapper = mapper;
     }
 
@@ -38,7 +39,7 @@ public sealed class UpdateTimeEntryHandler
         CancellationToken cancellationToken)
     {
         var model = _mapper.Map<TimeEntryModel>(request);
-        await _validator.ValidateAsync(model, cancellationToken);
+        await _validator.ValidateAsync(model, cancellationToken).ThrowIfInvalidAsync();
 
         var existing = await _timeEntriesRepository.GetByIdAsync(request.Id, cancellationToken)
             ?? throw new BusinessException(ErrorCodes.NotFound, "Запись табеля не найдена.", 404);
